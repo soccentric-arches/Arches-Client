@@ -1,5 +1,5 @@
 // registry/adapters/cpu_adapter.cc — CPU HAL module adapter.
-// Calls CpuTesting (Acadia-HAL/src/cpu_lib) via the TestBase public API.
+// Calls CpuTesting (Arches-HAL/src/cpu_lib) via the TestBase public API.
 // The RunOrchestrator manages timing loops; this adapter does one tick per call.
 
 #include "registry/adapters/cpu_adapter.h"
