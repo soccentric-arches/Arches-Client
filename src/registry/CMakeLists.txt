@@ -73,7 +73,13 @@ target_include_directories(arches_registry PRIVATE
 target_link_libraries(arches_registry PUBLIC
     acu_full_test
 )
+# Adapters call hal_bridge::resolve_test_names() / pack helpers (proto Config
+# parsing + module-Result packing live in hal_bridge). hal_protos_shared
+# supplies the protobuf reflection symbols + generated-proto includes that
+# ResultSerializer.h pulls in.
 target_link_libraries(arches_registry PRIVATE
+    arches_hal_bridge
+    hal_protos_shared
     yaml-cpp::yaml-cpp
     spdlog::spdlog
 )

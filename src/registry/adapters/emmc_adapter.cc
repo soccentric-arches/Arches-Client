@@ -1,5 +1,6 @@
 // HARDWARE-UNVERIFIED: calls real HAL; correctness requires on-target execution.
 #include "registry/adapters/emmc_adapter.h"
+#include "hal_bridge/ResultSerializer.h"
 #include "emmc_lib/emmc_lib.h"
 
 #include <algorithm>
@@ -11,8 +12,7 @@ EmmcAdapter::~EmmcAdapter() = default;
 
 std::vector<hal::TestResult> EmmcAdapter::run(int mode,
                                                    const std::vector<uint8_t>& config_bytes) {
-    (void)config_bytes;
-    auto test_names = hal_->getAvailableTests();
+    auto test_names = hal_bridge::resolve_test_names(config_bytes, hal_->getAvailableTests());
     auto results    = hal_->runSelectedTests(test_names);
     for (auto& r : results) {
         if (r.module_id.empty()) r.module_id = "emmc";

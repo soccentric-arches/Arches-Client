@@ -1,5 +1,6 @@
 // HARDWARE-UNVERIFIED: calls real HAL; correctness requires on-target execution.
 #include "registry/adapters/i2c_adapter.h"
+#include "hal_bridge/ResultSerializer.h"
 #include "i2c_lib/i2c_lib.h"
 
 #include <algorithm>
@@ -11,8 +12,7 @@ I2cAdapter::~I2cAdapter() = default;
 
 std::vector<hal::TestResult> I2cAdapter::run(int mode,
                                                    const std::vector<uint8_t>& config_bytes) {
-    (void)config_bytes;
-    auto test_names = hal_->getAvailableTests();
+    auto test_names = hal_bridge::resolve_test_names(config_bytes, hal_->getAvailableTests());
     auto results    = hal_->runSelectedTests(test_names);
     for (auto& r : results) {
         if (r.module_id.empty()) r.module_id = "i2c";

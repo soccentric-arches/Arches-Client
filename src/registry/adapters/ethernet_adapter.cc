@@ -2,6 +2,7 @@
 // HARDWARE-UNVERIFIED: calls real HAL; correctness requires on-target execution.
 
 #include "registry/adapters/ethernet_adapter.h"
+#include "hal_bridge/ResultSerializer.h"
 #include "ethernet_lib/ethernet_lib.h"
 
 #include <algorithm>
@@ -13,8 +14,7 @@ EthernetAdapter::~EthernetAdapter() = default;
 
 std::vector<hal::TestResult> EthernetAdapter::run(int mode,
                                                       const std::vector<uint8_t>& config_bytes) {
-    (void)config_bytes;
-    auto test_names = hal_->getAvailableTests();
+    auto test_names = hal_bridge::resolve_test_names(config_bytes, hal_->getAvailableTests());
     auto results    = hal_->runSelectedTests(test_names);
     for (auto& r : results) {
         if (r.module_id.empty()) r.module_id = "ethernet";

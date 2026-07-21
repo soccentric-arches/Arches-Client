@@ -4,6 +4,7 @@
 
 #include "registry/adapters/cpu_adapter.h"
 #include "cpu_lib/cpu_lib.h"  // HARDWARE-UNVERIFIED: on-target only
+#include "hal_bridge/ResultSerializer.h"
 
 #include <spdlog/spdlog.h>
 #include <algorithm>
@@ -16,10 +17,9 @@ CpuAdapter::~CpuAdapter() = default;
 
 std::vector<hal::TestResult> CpuAdapter::run(int mode,
                                                const std::vector<uint8_t>& config_bytes) {
-    (void)config_bytes;  // config parsing deferred to Phase 3
-
-    // Run all tests synchronously for this tick.
-    auto test_names = hal_->getAvailableTests();
+    // Run the server-selected tests for this tick (Config.test_names from the
+    // Any); falls back to all available tests when the config is empty.
+    auto test_names = hal_bridge::resolve_test_names(config_bytes, hal_->getAvailableTests());
     auto results    = hal_->runSelectedTests(test_names);
 
     // Adapters MUST set module_id (TestBase::runSelectedTests does not).

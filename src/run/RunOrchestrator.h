@@ -71,6 +71,9 @@ public:
     void on_pause(const std::string& run_id);
     void on_resume(const std::string& run_id);
     void on_stop(const std::string& run_id);
+    // RestartRun{old_run_id,new_run_id}: stop the old run; start the new run if
+    // its config is already pending, else the server must ConfigureRun+StartRun.
+    void on_restart(const std::string& old_run_id, const std::string& new_run_id);
 
     // Handle ACK from server.
     void on_batch_ack(const std::string& run_id, int64_t batch_seq);
@@ -91,14 +94,19 @@ private:
     void run_event_based(RunContext& ctx);
 
     // Stamp sequence and timestamp on each result, then flush to spool/stream.
+    // `state` is the RunState to stamp on the batch + spool run-state (RUNNING
+    // mid-run, PAUSED while paused, and the terminal COMPLETED / FAILED /
+    // CANCELLED at end-of-run). `terminal` marks the final batch for the run.
     void flush_results(RunContext& ctx,
                        std::vector<hal::TestResult> results,
+                       acadia::stream::RunState state,
                        bool terminal);
 
     // Synthesize a special-status result (TIMEOUT, ABORTED, ERROR) and flush.
     void flush_synthetic(RunContext& ctx,
                          hal::Status status,
                          const std::string& error_message,
+                         acadia::stream::RunState state,
                          bool terminal);
 
     Spool&          spool_;

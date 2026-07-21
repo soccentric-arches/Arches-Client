@@ -59,8 +59,13 @@ hal::common::ResultEnvelope HalServiceImpl::make_envelope(
         env.set_error_message(r.output.error_message);
     *env.mutable_timestamp() = br::to_proto(r.timestamp);
 
-    // Pack the detailed TestResult into the Any payload.
-    env.mutable_payload()->PackFrom(br::to_proto(r));
+    // Pack the module-specific Result (hal.modules.<module_id>.Result{results:[r]})
+    // into the Any payload — the §5-approved wire contract. Fall back to a bare
+    // hal.common.TestResult when the module Result descriptor is absent (unknown /
+    // proto-only module) so a result is never silently dropped.
+    if (!br::pack_module_result(module_id, {r}, env.mutable_payload())) {
+        env.mutable_payload()->PackFrom(br::to_proto(r));
+    }
     return env;
 }
 

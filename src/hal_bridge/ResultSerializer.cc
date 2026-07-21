@@ -6,9 +6,15 @@
 
 #include <spdlog/spdlog.h>
 
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/dynamic_message.h>
+#include <google/protobuf/reflection.h>
+
 #include <algorithm>
 #include <cstdint>
+#include <memory>
 #include <stdexcept>
+#include <unordered_set>
 #include <variant>
 
 namespace arches::client::hal_bridge {
@@ -292,6 +298,134 @@ hal::TestResult from_proto(const hal::common::TestResult& p, int depth) {
         }
     }
     return r;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Module Config parsing — read the server-selected test_names from a serialized
+// google.protobuf.Any carrying a hal.modules.<X>.Config. Uses protobuf reflection
+// against the generated descriptor pool (populated by hal_protos_shared) so it
+// works for every module Config without per-module headers.
+// ─────────────────────────────────────────────────────────────────────────────
+
+namespace {
+
+// Parse `any_bytes` (a serialized google.protobuf.Any) and return the descriptor
+// of the inner Config message plus a parsed dynamic message, or nullptr on any
+// failure. The Any's type_url names the message (e.g.
+// "type.googleapis.com/hal.modules.cpu.Config").
+struct ParsedAny {
+    const google::protobuf::Descriptor* desc = nullptr;
+    std::unique_ptr<google::protobuf::Message> msg;
+    bool ok() const { return desc && msg; }
+};
+
+ParsedAny parse_any_to_message(const std::vector<uint8_t>& any_bytes) {
+    ParsedAny out;
+    if (any_bytes.empty()) return out;
+    google::protobuf::Any any;
+    if (!any.ParseFromArray(any_bytes.data(),
+                              static_cast<int>(any_bytes.size())))
+        return out;
+
+    // type_url is "type.googleapis.com/<full.message.Name>"
+    std::string type_name = any.type_url();
+    if (auto slash = type_name.find('/'); slash != std::string::npos)
+        type_name = type_name.substr(slash + 1);
+
+    out.desc = google::protobuf::DescriptorPool::generated_pool()
+                   ->FindMessageTypeByName(type_name);
+    if (!out.desc) return out;
+
+    static google::protobuf::DynamicMessageFactory factory;
+    const google::protobuf::Message* prototype = factory.GetPrototype(out.desc);
+    if (!prototype) return out;
+    out.msg = std::unique_ptr<google::protobuf::Message>(prototype->New());
+    if (!out.msg->ParseFromString(any.value())) {
+        out.msg.reset();
+        out.desc = nullptr;
+    }
+    return out;
+}
+
+} // namespace
+
+std::vector<std::string> extract_test_names(const std::vector<uint8_t>& any_bytes) {
+    std::vector<std::string> out;
+    auto parsed = parse_any_to_message(any_bytes);
+    if (!parsed.ok()) return out;
+
+    // Every implemented-module Config has `repeated string test_names` (field 1).
+    // Look it up by name and require it be a repeated string.
+    const auto* fld = parsed.desc->FindFieldByName("test_names");
+    if (!fld || !fld->is_repeated() ||
+        fld->type() != google::protobuf::FieldDescriptor::TYPE_STRING)
+        return out;
+
+    const auto* refl = parsed.msg->GetReflection();
+    int n = refl->FieldSize(*parsed.msg, fld);
+    out.reserve(static_cast<size_t>(n));
+    for (int i = 0; i < n; ++i)
+        out.push_back(refl->GetRepeatedString(*parsed.msg, fld, i));
+    return out;
+}
+
+std::vector<std::string> resolve_test_names(const std::vector<uint8_t>& any_bytes,
+                                              const std::vector<std::string>& available) {
+    auto wanted = extract_test_names(any_bytes);
+    if (wanted.empty()) return available;  // no selection → run all available
+
+    // Validate-and-clamp: keep only requested tests the HAL actually offers.
+    std::unordered_set<std::string> avail(available.begin(), available.end());
+    std::vector<std::string> selected;
+    selected.reserve(wanted.size());
+    for (auto& t : wanted)
+        if (avail.count(t)) selected.push_back(std::move(t));
+
+    // If the config named tests the HAL doesn't offer, fall back to all
+    // available rather than running nothing.
+    return selected.empty() ? available : selected;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Module-specific Result packing (§5-approved). Build
+//   hal.modules.<module_id>.Result { repeated hal.common.TestResult results = 2; }
+// via reflection and pack into a google.protobuf.Any.
+// ─────────────────────────────────────────────────────────────────────────────
+
+std::string module_result_type_url(const std::string& module_id) {
+    return "type.googleapis.com/hal.modules." + module_id + ".Result";
+}
+
+bool pack_module_result(const std::string& module_id,
+                        const std::vector<hal::TestResult>& results,
+                        google::protobuf::Any* out) {
+    if (!out) return false;
+    const std::string type_name = "hal.modules." + module_id + ".Result";
+    const auto* desc = google::protobuf::DescriptorPool::generated_pool()
+                           ->FindMessageTypeByName(type_name);
+    if (!desc) return false;  // unknown / proto-only module → caller falls back
+
+    static google::protobuf::DynamicMessageFactory factory;
+    const auto* prototype = factory.GetPrototype(desc);
+    if (!prototype) return false;
+    auto msg = std::unique_ptr<google::protobuf::Message>(prototype->New());
+    const auto* refl = msg->GetReflection();
+
+    // The implemented-module Result has `repeated hal.common.TestResult results`.
+    const auto* fld = desc->FindFieldByName("results");
+    if (!fld || !fld->is_repeated() ||
+        fld->type() != google::protobuf::FieldDescriptor::TYPE_MESSAGE)
+        return false;
+
+    for (const auto& r : results) {
+        // AddMessage returns a mutable sub-message of the field's message type
+        // (hal.common.TestResult); CopyFrom the converted TestResult into it.
+        auto* sub = refl->AddMessage(msg.get(), fld);
+        sub->CopyFrom(to_proto(r));
+    }
+
+    out->PackFrom(*msg);
+    return true;
 }
 
 } // namespace arches::client::hal_bridge

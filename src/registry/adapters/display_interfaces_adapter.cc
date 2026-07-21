@@ -2,6 +2,7 @@
 // HARDWARE-UNVERIFIED: calls real HAL; correctness requires on-target execution.
 
 #include "registry/adapters/display_interfaces_adapter.h"
+#include "hal_bridge/ResultSerializer.h"
 #include "display_interfaces/display_interfaces.h"
 
 #include <algorithm>
@@ -13,8 +14,7 @@ DisplayInterfacesAdapter::~DisplayInterfacesAdapter() = default;
 
 std::vector<hal::TestResult> DisplayInterfacesAdapter::run(int mode,
                                                       const std::vector<uint8_t>& config_bytes) {
-    (void)config_bytes;
-    auto test_names = hal_->getAvailableTests();
+    auto test_names = hal_bridge::resolve_test_names(config_bytes, hal_->getAvailableTests());
     auto results    = hal_->runSelectedTests(test_names);
     for (auto& r : results) {
         if (r.module_id.empty()) r.module_id = "display_interfaces";

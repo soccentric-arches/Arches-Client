@@ -331,6 +331,12 @@ void App::on_server_message(const ServerMessage& msg) {
             orchestrator_->on_stop(msg.stop_run().run_id());
             log_collector_->set_run_id("_system");
             break;
+        case ServerMessage::kRestartRun:
+            // Stop the old run and start the new one (if its config is pending).
+            orchestrator_->on_restart(msg.restart_run().old_run_id(),
+                                      msg.restart_run().new_run_id());
+            log_collector_->set_run_id(msg.restart_run().new_run_id());
+            break;
         case ServerMessage::kBatchAck:
             orchestrator_->on_batch_ack(
                 msg.batch_ack().run_id(), msg.batch_ack().batch_seq());

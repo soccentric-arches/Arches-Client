@@ -73,6 +73,7 @@ target_include_directories(test_adapter_registry PRIVATE
 
 target_link_libraries(test_adapter_registry PRIVATE
     arches_registry
+    arches_hal_bridge
     hal_protos_shared
     spdlog::spdlog
     GTest::gtest_main

@@ -20,11 +20,13 @@
 #include <map>
 #include <string>
 #include <variant>
+#include <vector>
 
 #include "lib_base.h"
 #include "common.pb.h"
 #include <google/protobuf/timestamp.pb.h>
 #include <google/protobuf/duration.pb.h>
+#include <google/protobuf/any.pb.h>
 
 namespace arches::client::hal_bridge {
 
@@ -90,5 +92,48 @@ hal::TestOutput         from_proto(const hal::common::TestOutput& out);
 // depth is used internally to enforce kMaxSubtestDepth.
 hal::common::TestResult to_proto(const hal::TestResult& r, int depth = 0);
 hal::TestResult         from_proto(const hal::common::TestResult& r, int depth = 0);
+
+// ─── Module Config parsing ────────────────────────────────────────────────
+//
+// The server sends a per-module Config message packed in a google.protobuf.Any
+// (ConfigureRun.module_config). For every implemented HAL module the Config
+// shape is `message Config { repeated string test_names = 1; }`. These helpers
+// read the server-selected test names out of the Any so the adapter can run
+// only the requested subset (falling back to all-available when empty). They use
+// protobuf reflection so they work for every module Config without per-module
+// generated headers — only the descriptor pool (populated by hal_protos_shared)
+// is consulted.
+
+// Extract the raw test_names from a serialized google.protobuf.Any carrying a
+// hal.modules.<X>.Config. Returns empty on any parse failure or empty config.
+std::vector<std::string> extract_test_names(const std::vector<uint8_t>& any_bytes);
+
+// Resolve the tests to run for a tick: take the server-selected test_names from
+// the serialized Config Any, keep only those the HAL actually offers
+// (validate-and-clamp), and fall back to `available` when the config is empty,
+// unparsable, or names nothing the HAL knows. This is what every adapter calls.
+std::vector<std::string> resolve_test_names(const std::vector<uint8_t>& any_bytes,
+                                              const std::vector<std::string>& available);
+
+// ─── Module-specific Result packing (§5-approved contract) ─────────────────
+//
+// The wire contract (hal_service.proto / client_service.proto comments) states
+// that ResultEnvelope.payload and ResultSample.payload carry the module-specific
+// `hal.modules.<X>.Result` packed as google.protobuf.Any — NOT a bare
+// hal.common.TestResult. For implemented modules that Result is
+// `message Result { repeated hal.common.TestResult results = 2; }`.
+//
+// pack_module_result builds that module Result via reflection (so no per-module
+// headers are needed) and packs it into `out`. Returns true on success. Returns
+// false (and leaves `out` untouched) when the module Result descriptor is not
+// found (unknown/proto-only module) — caller should then fall back to packing a
+// bare hal.common.TestResult so no result is ever silently dropped.
+bool pack_module_result(const std::string& module_id,
+                        const std::vector<hal::TestResult>& results,
+                        google::protobuf::Any* out);
+
+// Type URL for a module-specific Result (used to populate ResultSample.type_url /
+// ResultEnvelope debug). Matches the Any's type_url after PackFrom.
+std::string module_result_type_url(const std::string& module_id);
 
 } // namespace arches::client::hal_bridge

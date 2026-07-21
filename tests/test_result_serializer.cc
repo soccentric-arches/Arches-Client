@@ -10,6 +10,9 @@
 #include <gtest/gtest.h>
 
 #include "hal_bridge/ResultSerializer.h"
+#include "modules/cpu.pb.h"  // hal::modules::cpu::{Config,Result}
+
+#include <google/protobuf/any.pb.h>
 
 #include <chrono>
 #include <cstdint>
@@ -286,6 +289,99 @@ TEST(FromProto, UnspecifiedSeverityBecomesInfo) {
     p.set_severity(hal::common::TEST_SEVERITY_UNSPECIFIED);
     auto out = from_proto(p);
     EXPECT_EQ(out.severity, hal::Severity::INFO);
+}
+
+// ─── Module Config parsing (resolve_test_names / extract_test_names) ────────
+
+// Serialize a hal.modules.cpu.Config (with test_names) into an Any, then to
+// bytes — the shape the orchestrator hands to adapters as config_bytes.
+static std::vector<uint8_t> config_any_bytes(std::vector<std::string> names) {
+    hal::modules::cpu::Config cfg;
+    for (auto& n : names) cfg.add_test_names(std::move(n));
+    google::protobuf::Any any;
+    any.PackFrom(cfg);
+    std::vector<uint8_t> out(any.ByteSizeLong());
+    any.SerializeToArray(out.data(), static_cast<int>(out.size()));
+    return out;
+}
+
+TEST(ConfigParsing, ExtractsTestNamesFromConfigAny) {
+    auto bytes = config_any_bytes({"load_test", "thermal_test"});
+    auto names = extract_test_names(bytes);
+    ASSERT_EQ(names.size(), 2u);
+    EXPECT_EQ(names[0], "load_test");
+    EXPECT_EQ(names[1], "thermal_test");
+}
+
+TEST(ConfigParsing, EmptyConfigFallsBackToAllAvailable) {
+    // Arrange — an Any carrying an empty Config (no test_names).
+    auto bytes = config_any_bytes({});
+    std::vector<std::string> available = {"a", "b", "c"};
+
+    // Act
+    auto selected = resolve_test_names(bytes, available);
+
+    // Assert — empty selection means "run all available".
+    EXPECT_EQ(selected, available);
+}
+
+TEST(ConfigParsing, ClampsToAvailableAndFallsBackWhenNoneMatch) {
+    // Arrange — config asks for tests the HAL doesn't offer.
+    auto bytes = config_any_bytes({"ghost_test", "load_test"});
+    std::vector<std::string> available = {"load_test", "thermal_test"};
+
+    // Act — only "load_test" is real; "ghost_test" is dropped.
+    auto selected = resolve_test_names(bytes, available);
+    ASSERT_EQ(selected.size(), 1u);
+    EXPECT_EQ(selected[0], "load_test");
+
+    // Act again — config names nothing the HAL offers → fall back to all.
+    auto none_match = config_any_bytes({"totally_unknown"});
+    auto fallback = resolve_test_names(none_match, available);
+    EXPECT_EQ(fallback, available);
+}
+
+TEST(ConfigParsing, UnparsableBytesReturnEmpty) {
+    std::vector<uint8_t> garbage = {0xDE, 0xAD, 0xBE, 0xEF};
+    EXPECT_TRUE(extract_test_names(garbage).empty());
+    // resolve_test_names falls back to available on garbage.
+    std::vector<std::string> available = {"a"};
+    EXPECT_EQ(resolve_test_names(garbage, available), available);
+}
+
+// ─── Module-specific Result packing (§5 contract) ───────────────────────────
+
+TEST(ModuleResultPacking, PacksModuleResultWrapperForKnownModule) {
+    // Arrange
+    auto r = make_result(hal::Status::PASS, hal::Severity::INFO);
+    r.module_id = "cpu";
+
+    // Act — pack into a module-specific Result Any.
+    google::protobuf::Any any;
+    ASSERT_TRUE(pack_module_result("cpu", {r}, &any));
+
+    // Assert — the Any carries hal.modules.cpu.Result, and results(0)
+    // round-trips the TestResult we packed.
+    EXPECT_EQ(any.type_url(), module_result_type_url("cpu"));
+    hal::modules::cpu::Result mod;
+    ASSERT_TRUE(any.UnpackTo(&mod));
+    ASSERT_EQ(mod.results_size(), 1);
+    EXPECT_EQ(mod.results(0).module_id(), "cpu");
+    EXPECT_EQ(mod.results(0).test_id(), r.test_id);
+    EXPECT_EQ(mod.results(0).sequence(), 42u);
+}
+
+TEST(ModuleResultPacking, UnknownModuleReturnsFalseForFallback) {
+    google::protobuf::Any any;
+    // "no_such_module" has no .Result descriptor in the pool.
+    EXPECT_FALSE(pack_module_result("no_such_module", {}, &any));
+}
+
+TEST(ModuleResultPacking, TypeUrlMatchesAnyAfterPack) {
+    auto r = make_result();
+    google::protobuf::Any any;
+    ASSERT_TRUE(pack_module_result("cpu", {r}, &any));
+    EXPECT_EQ(any.type_url(), module_result_type_url("cpu"));
 }
 
 } // namespace
