@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 MipiDsiAdapter::MipiDsiAdapter() : hal_(std::make_unique<MipiDsiTesting>()) {}
 MipiDsiAdapter::~MipiDsiAdapter() = default;
@@ -30,4 +30,4 @@ std::vector<hal::TestResult> MipiDsiAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

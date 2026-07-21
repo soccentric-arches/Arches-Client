@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 DebugAndDevelopmentInterfacesAdapter::DebugAndDevelopmentInterfacesAdapter() : hal_(std::make_unique<DebugAndDevelopmentInterfaces>()) {}
 DebugAndDevelopmentInterfacesAdapter::~DebugAndDevelopmentInterfacesAdapter() = default;
@@ -35,4 +35,4 @@ std::vector<hal::TestResult> DebugAndDevelopmentInterfacesAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

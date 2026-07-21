@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 VideoEncodeDecodeAdapter::VideoEncodeDecodeAdapter() : hal_(std::make_unique<VideoEncodeDecodeTesting>()) {}
 VideoEncodeDecodeAdapter::~VideoEncodeDecodeAdapter() = default;
@@ -35,4 +35,4 @@ std::vector<hal::TestResult> VideoEncodeDecodeAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

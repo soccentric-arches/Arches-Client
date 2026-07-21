@@ -4,7 +4,7 @@
 #include <string>
 #include <utility>
 
-namespace acadia::client {
+namespace arches::client {
 
 // Lightweight value-based error propagation.
 // Use for expected failure paths (I/O, validation, parsing).
@@ -38,4 +38,4 @@ private:
     std::string error_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 SecurityFeaturesAdapter::SecurityFeaturesAdapter() : hal_(std::make_unique<SecurityFeaturesTesting>()) {}
 SecurityFeaturesAdapter::~SecurityFeaturesAdapter() = default;
@@ -35,4 +35,4 @@ std::vector<hal::TestResult> SecurityFeaturesAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

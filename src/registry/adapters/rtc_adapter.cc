@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 RtcAdapter::RtcAdapter() : hal_(std::make_unique<RtcTesting>()) {}
 RtcAdapter::~RtcAdapter() = default;
@@ -30,4 +30,4 @@ std::vector<hal::TestResult> RtcAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

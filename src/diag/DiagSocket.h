@@ -1,6 +1,6 @@
 #pragma once
 // diag/DiagSocket.h — UNIX domain socket that exposes JSON status for
-// local diagnostics (e.g. acadia-ctl status).
+// local diagnostics (e.g. arches-ctl status).
 // Accepts one-line text queries and responds with JSON.
 
 #include <atomic>
@@ -8,14 +8,14 @@
 #include <thread>
 #include <functional>
 
-namespace acadia::client {
+namespace arches::client {
 
 // Callback: query_string → JSON response string
 using DiagQueryFn = std::function<std::string(const std::string&)>;
 
 class DiagSocket {
 public:
-    // socket_path: e.g. "/run/acadia/client.sock"
+    // socket_path: e.g. "/run/arches/client.sock"
     DiagSocket(std::string socket_path, DiagQueryFn query_fn);
     ~DiagSocket();
 
@@ -35,4 +35,4 @@ private:
     std::thread     thread_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

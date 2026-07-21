@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 ReliabilityAdapter::ReliabilityAdapter() : hal_(std::make_unique<ReliabilityTesting>()) {}
 ReliabilityAdapter::~ReliabilityAdapter() = default;
@@ -35,4 +35,4 @@ std::vector<hal::TestResult> ReliabilityAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

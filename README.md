@@ -1,687 +1,135 @@
-# Acadia-Client
+# Arches-Client
 
-> **gRPC-based daemon for IV&V (Independent Verification & Validation) hardware testing on embedded Linux platforms**
+The **gRPC IV&V client** for the Arches project (NVIDIA Jetson target, STM32
+co-processor). The client runs on the board under validation and:
 
-Acadia-Client is a C++17 daemon that orchestrates hardware validation tests, collects results, and streams them to an Acadia-Server instance. It manages test execution, durable result storage, log collection, and provides gRPC endpoints for both server communication and SDK integration.
+1. Drives the hardware through the **Arches-HAL** C++ API (static + dynamic HAL
+   libraries), one adapter per HAL module.
+2. Speaks the shared **gRPC/protobuf** wire contracts (`client_service.proto`
+   streaming up to Arches-Server, `hal_service.proto` for the SDK/E2E path).
+3. Spools results durably to SQLite and streams them to Arches-Server.
 
----
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Architecture](#architecture)
-- [System Requirements](#system-requirements)
-- [Dependencies](#dependencies)
-- [Building](#building)
-  - [Native Build](#native-build)
-  - [Docker Build (Cross-compilation)](#docker-build-cross-compilation)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Running](#running)
-  - [Manual Execution](#manual-execution)
-  - [Systemd Service](#systemd-service)
-- [Testing](#testing)
-- [Project Structure](#project-structure)
-- [Supported Hardware Modules](#supported-hardware-modules)
-- [Development](#development)
-- [Troubleshooting](#troubleshooting)
-- [License](#license)
-
----
-
-## Overview
-
-Acadia-Client provides:
-
-- **Test Orchestration**: Executes hardware validation tests via 35+ module adapters (CPU, GPU, Thermal, Storage, USB, Ethernet, etc.)
-- **Result Serialization**: Converts HAL test results to Protocol Buffer format with proper sequencing and timestamping
-- **Durable Storage**: SQLite-based spool for result buffering and replay on network interruption
-- **Server Streaming**: Bidirectional gRPC stream to Acadia-Server for commands and result delivery
-- **SDK Interface**: HalService gRPC endpoint for Python SDK and end-to-end test integration
-- **Log Collection**: Tails specified log files and forwards entries to server
-- **Diagnostic Socket**: Local diagnostic interface for health monitoring
-
-**Target Platforms**: Raspberry Pi 5 (BCM2712/RP1), NVIDIA Jetson, or any ARM64/x86_64 Linux system with GPIO/hardware access.
-
----
+This is the **Arches-native** rewrite of the client. The implementation is wired
+to `../Arches-HAL`; the proto packages (`acadia.stream`, `hal.common`, `hal`,
+`hal.modules.*`) are shared wire contracts with Arches-Server and Arches-PySDK
+and are intentionally **unchanged** — only the client's own C++ namespace was
+renamed to `arches::client`.
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     Acadia-Client                           │
-│                                                             │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
-│  │ StreamClient │──│     Spool    │──│RunOrchestrator│     │
-│  │  (gRPC to    │  │  (SQLite3)   │  │ (Test Exec)   │     │
-│  │   Server)    │  └──────────────┘  └───────┬───────┘     │
-│  └──────────────┘                            │             │
-│                                               │             │
-│  ┌──────────────┐  ┌──────────────┐  ┌───────▼───────┐     │
-│  │ LogCollector │  │  DiagSocket  │  │ Module        │     │
-│  │              │  │              │  │ Registry      │     │
-│  └──────────────┘  └──────────────┘  └───────┬───────┘     │
-│                                               │             │
-│  ┌──────────────┐                    ┌───────▼───────┐     │
-│  │ HalService   │◄───────────────────│  35+ Adapters │     │
-│  │ (gRPC for    │                    │  (HAL Bridge) │     │
-│  │  PySDK)      │                    └───────────────┘     │
-│  └──────────────┘                                          │
-└─────────────────────────────────────────────────────────────┘
-         ▲                                    │
-         │                                    │
-         │                                    ▼
-    Acadia-Server                        Acadia-HAL
-    (gRPC Stream)                        (Hardware Abstraction)
+┌─ TARGET BOARD (NVIDIA Jetson) ────────────────────────────────────────────┐
+│  Hardware (under validation)                                              │
+│     ▲                                                                      │
+│  Arches-HAL  (C++17, one module per component, extends TestBase)          │
+│     ▲ HAL API (lib_base.h: hal::Value / hal::Status / hal::TestResult)    │
+│  Arches-Client  ◄── this repo                                             │
+│   ├─ AdapterRegistry   (only dispatch point; one adapter per HAL module)   │
+│   ├─ adapters/*        (35 real HAL-backed + honest SKIPPED stubs)        │
+│   ├─ ResultSerializer  (hal::TestResult  ↔  hal.common.TestResult[Any])   │
+│   ├─ RunOrchestrator   (seq/timestamp stamping, backpressure on spool full)│
+│   ├─ Spool             (SQLite, schema v2, durable + quarantine)          │
+│   ├─ StreamClient      (bidi gRPC → Arches-Server, client_service.proto)   │
+│   ├─ HalService        (gRPC endpoint for SDK/E2E, no DB writes)           │
+│   ├─ Janitor / LogCollector / DiagSocket / OtaClient                       │
+│   └─ config            (TOML/YAML, SQLite-backed where applicable)        │
+└─────▲──────────────────────────────────────────────────────────────────────┘
+      │ gRPC + FlatBuffers
+┌─ x86 LINUX HOST ──────────────────────────────────────────────────────────┐
+│  Arches-Server ──GraphQL──► Arches-Dashboard                               │
+└────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Core Components
+### Adapter model (the core of this rewrite)
 
-| Component | Purpose |
-|-----------|---------|
-| **StreamClient** | Bidirectional gRPC stream to Acadia-Server; handles reconnection and heartbeat |
-| **Spool** | SQLite3 database for durable result/log storage; enforces capacity limits |
-| **RunOrchestrator** | Executes test runs, invokes module adapters, serializes results |
-| **ModuleRegistry** | Loads `modules.yaml` and dispatches tests to appropriate adapters |
-| **HalService** | gRPC service (port 50052) for Python SDK to invoke HAL tests |
-| **LogCollector** | Tails configured log files and forwards to server |
-| **Janitor** | Periodic cleanup of old spool entries |
-| **DiagSocket** | Unix socket for local diagnostics |
+- `AdapterRegistry::invoke(module_id, mode, cfg)` is the **only** dispatch
+  point. There is no `switch(module_id)` anywhere else.
+- **35 real adapters** wrap HAL modules that have a C++ implementation
+  (`*_adapter.cc` calling the HAL API in `../Arches-HAL/src`).
+- **~16 proto-only modules** have no HAL C++ lib yet. They get a generic
+  `StubAdapter` that returns an honest `SKIPPED` result naming the module and
+  "not yet implemented" — **never a fake pass**.
+- A module id that is **unknown** (not in `modules.yaml`, no adapter) returns a
+  single `ERROR` result ("no adapter") — never an empty vector, never a crash.
+- An adapter that **throws** is caught by the registry and converted to a
+  single `ERROR` result ("adapter exception").
 
----
+`build_adapter_registry()` (in `app.cpp`) enforces: every module in
+`modules.yaml` gets an adapter — real if HAL-backed, stub otherwise. No module
+is silently dropped. `tests/test_app_wiring.cc` locks this policy.
 
-## System Requirements
+### Linking strategy (why no local proto generation)
 
-### Hardware
-- **Minimum**: ARM64 or x86_64 processor (Pi 5, Jetson, or similar)
-- **Recommended**: 1 GB RAM, 2 GB storage for spool database
+The client does **not** generate any protobuf sources. It consumes the HAL
+subproject's pre-built proto library:
 
-### Operating System
-- **Ubuntu 22.04 LTS** (primary target)
-- **Ubuntu 20.04 LTS** (supported with manual dependency builds)
-- Other Debian-based ARM64/x86_64 distributions (untested)
+- `add_subdirectory(../Arches-HAL ${CMAKE_BINARY_DIR}/arches_hal_build EXCLUDE_FROM_ALL)`
+- link **`acu_full_test`** (static — all HAL modules + `lib_base`, threads only)
+- link **`hal_protos_shared`** (shared — all generated protos + gRPC; carries
+  protobuf + gRPC **transitively** via PUBLIC)
 
-### Network
-- Connectivity to **Acadia-Server** (configurable IP/port)
-- Optional: Access to hardware peripherals (GPIO, I2C, SPI, USB, etc.)
+This makes the HAL subproject the single source of generated proto symbols, so
+there is no ODR / duplicate-symbol risk and no `find_package(gRPC/Protobuf)` in
+the client root. Validated by a build spike before the rewrite.
 
----
+## Build & test
 
-## Dependencies
+The Makefile is the single entry point (per SoCcentric §12):
 
-### Build-time Dependencies
-
-| Library | Version | Purpose |
-|---------|---------|---------|
-| **CMake** | ≥ 3.16 | Build system |
-| **GCC/G++** | ≥ 9.0 (C++17) | Compiler |
-| **Protocol Buffers** | ≥ 3.12 | Message serialization |
-| **gRPC** | ≥ 1.30 | RPC framework |
-| **spdlog** | ≥ 1.x | Structured logging |
-| **toml++** | ≥ 3.4 | Configuration parsing |
-| **yaml-cpp** | ≥ 0.7 | Module registry parsing |
-| **SQLite3** | ≥ 3.x | Spool database |
-| **GoogleTest** | ≥ 1.10 | Unit testing |
-
-### Runtime Dependencies
-
-| Dependency | Notes |
-|------------|-------|
-| **Acadia-HAL** | Sibling repository (must be in `../Acadia-HAL/`) |
-| **libprotobuf.so** | Shared library for Protocol Buffers |
-| **libgrpc++.so** | gRPC C++ runtime |
-
----
-
-## Building
-
-### Prerequisites
-
-1. **Clone both repositories** (they must be siblings):
-   ```bash
-   mkdir -p ~/workspace/Acadia
-   cd ~/workspace/Acadia
-   git clone <acadia-client-repo-url> Acadia-Client
-   git clone <acadia-hal-repo-url> Acadia-HAL
-   ```
-
-2. **Install system dependencies**:
-
-   **Ubuntu 22.04 / 20.04:**
-   ```bash
-   sudo apt-get update
-   sudo apt-get install -y \
-       build-essential cmake git \
-       protobuf-compiler libprotobuf-dev \
-       libgrpc++-dev libgrpc-dev \
-       libsqlite3-dev libspdlog-dev \
-       libgtest-dev pkg-config ninja-build
-   ```
-
-3. **Install header-only libraries** (if not packaged):
-
-   **toml++** (required on Ubuntu 22.04 ARM64):
-   ```bash
-   git clone --depth=1 --branch v3.4.0 https://github.com/marzer/tomlplusplus.git /tmp/tomlplusplus
-   cmake -S /tmp/tomlplusplus -B /tmp/tomlplusplus/build \
-       -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=lib
-   sudo cmake --install /tmp/tomlplusplus/build
-   rm -rf /tmp/tomlplusplus
-   ```
-
-   **yaml-cpp 0.8.0** (if system version lacks CMake targets):
-   ```bash
-   git clone --depth=1 --branch 0.8.0 https://github.com/jbeder/yaml-cpp.git /tmp/yaml-cpp
-   cmake -S /tmp/yaml-cpp -B /tmp/yaml-cpp/build \
-       -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=lib -DYAML_CPP_BUILD_TESTS=OFF
-   cmake --build /tmp/yaml-cpp/build --parallel
-   sudo cmake --install /tmp/yaml-cpp/build
-   rm -rf /tmp/yaml-cpp
-   ```
-
-4. **Build grpc_cpp_plugin** (if missing):
-   ```bash
-   # Check if grpc_cpp_plugin exists
-   which grpc_cpp_plugin || {
-       # Build from source (see Dockerfile for full build script)
-       # Alternatively, install grpc-plugins package if available
-       sudo apt-get install -y protobuf-compiler-grpc
-   }
-   ```
-
----
-
-### Native Build
-
-**Using Makefile** (recommended):
 ```bash
-cd ~/workspace/Acadia/Acadia-Client
-make configure  # Run CMake
-make build      # Compile with Ninja
+make build      # configure + ninja (host), 222 targets
+make test       # ctest -L arches_client (filters out ~36 unbuilt HAL tests)
+make lint       # cppcheck + clang-tidy (best-effort via compile_commands.json)
+make installer  # CPack .deb / .rpm / .zip
+make doc        # Doxygen (needs doxygen installed)
+make run        # run the client locally
 ```
 
-**Using CMake directly**:
+The full validation gate is `make build && make test && make lint`.
+
+> **Note on `make test`:** the HAL subproject's `enable_testing()` registers
+> ~36 HAL test executables that are not built for the client (EXCLUDE_FROM_ALL).
+> Running bare `ctest` fails on those. All client tests carry the
+> `arches_client` label and the `test` target filters on it.
+
+### Cross-build for Jetson (ARM64 via Docker/QEMU)
+
 ```bash
-cd ~/workspace/Acadia/Acadia-Client
-mkdir -p build/native
-cd build/native
-cmake ../.. -G Ninja -DCMAKE_BUILD_TYPE=Release
-cmake --build . --parallel $(nproc)
+make docker-build    # build ARM64 binaries in the arches Docker image
+make docker-test     # run client tests under QEMU
+make deploy-a        # scp lib+bin to 192.168.1.3 (Jetson A)
+make deploy-b        # scp lib+bin to 192.168.1.13 (Jetson B)
+make run-a [app] [args]   # run on Jetson A
 ```
 
-**Output**:
-- Binary: `build/native/bin/acadia-client`
-- Tests: `build/native/bin/test_result_serializer`, `build/native/bin/test_run_orchestrator`
-
----
-
-### Docker Build (Cross-compilation)
-
-For cross-compiling from x86_64 to ARM64 (Raspberry Pi 5):
-
-1. **Build Docker image**:
-   ```bash
-   cd ~/workspace/Acadia/Acadia-Client/docker
-   make build  # or: docker buildx build --platform linux/arm64 --load -t acadia .
-   ```
-
-2. **Enter build container**:
-   ```bash
-   make run    # Interactive shell in ARM64 container
-   ```
-
-3. **Build inside container**:
-   ```bash
-   # Inside container:
-   cd /workspace/Acadia-Client
-   make docker-configure
-   make docker-build
-   ```
-
-4. **Extract binaries**:
-   ```bash
-   # On host:
-   cd ~/workspace/Acadia/Acadia-Client
-   docker run --rm -v $(pwd):/host acadia \
-       cp -r /workspace/Acadia-Client/build/cross/bin /host/build/cross/
-   ```
-
----
-
-## Installation
-
-### Manual Installation
-
-1. **Copy binary**:
-   ```bash
-   sudo install -m 0755 build/native/bin/acadia-client /usr/bin/acadia-client
-   ```
-
-2. **Create configuration directory**:
-   ```bash
-   sudo mkdir -p /etc/acadia
-   sudo cp conf/client.conf.sample /etc/acadia/client.conf
-   sudo chown root:root /etc/acadia/client.conf
-   sudo chmod 0644 /etc/acadia/client.conf
-   ```
-
-3. **Create spool directory**:
-   ```bash
-   sudo mkdir -p /var/lib/acadia/spool
-   sudo chown acadia:acadia /var/lib/acadia/spool  # See user setup below
-   ```
-
-4. **Create acadia user** (for systemd service):
-   ```bash
-   sudo useradd -r -s /usr/sbin/nologin -d /var/lib/acadia acadia
-   sudo chown -R acadia:acadia /var/lib/acadia
-   ```
-
-5. **Install systemd service**:
-   ```bash
-   sudo cp systemd/acadia-client.service /etc/systemd/system/
-   sudo systemctl daemon-reload
-   ```
-
----
-
-### CMake Install
-
-Alternatively, use the CMake install target:
-```bash
-cd build/native
-sudo cmake --install .
-```
-
-This installs:
-- Binary → `/usr/bin/acadia-client`
-- Config → `/etc/acadia/client.conf`
-- Service → `/lib/systemd/system/acadia-client.service`
-
----
+The Docker container mounts the parent `Arches/` directory so both
+`Arches-Client` and `Arches-HAL` are visible (CMakeLists references
+`../Arches-HAL/...`).
 
 ## Configuration
 
-Edit `/etc/acadia/client.conf`:
-
-```toml
-# Acadia-Client configuration
-
-# ---------------------------------------------------------------------------
-# gRPC server (outbound — connects to Acadia-Server)
-# ---------------------------------------------------------------------------
-server_address = "192.168.1.100"   # REQUIRED — IP or hostname of Acadia-Server
-server_port    = 50051
-
-# ---------------------------------------------------------------------------
-# HalService listener (inbound — PySDK connects to this Client port)
-# ---------------------------------------------------------------------------
-# hal_service_bind = "0.0.0.0"     # bind address; "127.0.0.1" for loopback only
-# hal_service_port = 50052         # default 50052
-
-# ---------------------------------------------------------------------------
-# Spool (durability store)
-# ---------------------------------------------------------------------------
-spool_path             = "/var/lib/acadia/spool/spool.db"
-result_spool_cap_bytes = 2147483648   # 2 GiB
-log_spool_cap_bytes    = 524288000    # 500 MiB
-
-# ---------------------------------------------------------------------------
-# TLS (leave empty for plaintext — lab-subnet default)
-# ---------------------------------------------------------------------------
-# tls_ca   = "/etc/acadia/ca.crt"
-# tls_cert = "/etc/acadia/client.crt"
-# tls_key  = "/etc/acadia/client.key"
-
-# ---------------------------------------------------------------------------
-# Extra log paths to tail and forward to server
-# ---------------------------------------------------------------------------
-# log_paths = [
-#   "/var/log/acadia/hal.log",
-# ]
-```
-
-**Required fields**:
-- `server_address`: IP/hostname of Acadia-Server instance
-
-**Optional**:
-- `hal_service_port`: Change if port 50052 conflicts
-- `tls_*`: Enable TLS for production deployments
-- `log_paths`: Additional log files to tail (e.g., HAL library logs)
-
----
-
-## Running
-
-### Manual Execution
-
-**Development run** (foreground):
-```bash
-/usr/bin/acadia-client --config /etc/acadia/client.conf
-```
-
-**With debug logging**:
-```bash
-SPDLOG_LEVEL=debug /usr/bin/acadia-client --config /etc/acadia/client.conf
-```
-
-The daemon will:
-1. Load configuration from `/etc/acadia/client.conf`
-2. Initialize spool database
-3. Connect to Acadia-Server (retry on failure)
-4. Start HalService listener on port 50052
-5. Begin heartbeat loop
-
-**Graceful shutdown**: Send `SIGTERM` or `SIGINT` (Ctrl+C)
-
----
-
-### Systemd Service
-
-**Enable and start**:
-```bash
-sudo systemctl enable acadia-client.service
-sudo systemctl start acadia-client.service
-```
-
-**Check status**:
-```bash
-sudo systemctl status acadia-client.service
-```
-
-**View logs**:
-```bash
-sudo journalctl -u acadia-client.service -f  # Follow logs
-sudo journalctl -u acadia-client.service -n 100  # Last 100 lines
-```
-
-**Stop service**:
-```bash
-sudo systemctl stop acadia-client.service
-```
-
-**Restart after config changes**:
-```bash
-sudo systemctl restart acadia-client.service
-```
-
----
-
-## Testing
-
-### Run Unit Tests
-
-```bash
-cd build/native
-ctest --output-on-failure
-```
-
-Or run individual test binaries:
-```bash
-./bin/test_result_serializer
-./bin/test_run_orchestrator
-```
-
-### Available Tests
-
-| Test | Purpose |
-|------|---------|
-| `test_result_serializer` | Validates HAL → Protobuf serialization |
-| `test_run_orchestrator` | Tests orchestration logic and batching |
-
-### Manual Integration Test
-
-1. **Start Acadia-Server** (on remote machine or localhost)
-2. **Configure client** to point to server IP
-3. **Run client** with `--config` flag
-4. **Trigger test via SDK**:
-   ```python
-   # Python SDK example
-   from acadia_sdk import Client
-   client = Client("localhost:50052")
-   result = client.run_test("cpu", "frequency_test")
-   print(result)
-   ```
-
----
-
-## Project Structure
-
-```
-Acadia-Client/
-├── CMakeLists.txt              # Root build configuration
-├── Makefile                    # High-level build commands
-├── Doxyfile.in                 # Doxygen documentation config
-├── src/
-│   ├── main.cpp                # Entry point
-│   ├── app.h / app.cpp         # Top-level App object
-│   ├── common/                 # Shared utilities
-│   ├── config/                 # Configuration parsing (TOML)
-│   ├── stream/                 # StreamClient (gRPC to server)
-│   ├── spool/                  # Spool (SQLite3 storage)
-│   ├── run/                    # RunOrchestrator (test execution)
-│   ├── registry/               # ModuleRegistry + 35+ adapters
-│   │   ├── AdapterBase.h       # Base class for all adapters
-│   │   ├── AdapterRegistry.h   # Adapter registration/lookup
-│   │   └── adapters/           # Module-specific adapters
-│   │       ├── cpu_adapter.h
-│   │       ├── gpu_adapter.h
-│   │       ├── thermal_adapter.h
-│   │       └── ... (35+ total)
-│   ├── hal_service/            # HalService gRPC endpoint
-│   ├── hal_bridge/             # ResultSerializer (HAL → Protobuf)
-│   ├── log/                    # LogCollector
-│   ├── janitor/                # Cleanup tasks
-│   └── diag/                   # DiagSocket
-├── tests/                      # Unit tests (GoogleTest)
-├── conf/
-│   └── client.conf.sample      # Sample configuration
-├── systemd/
-│   └── acadia-client.service   # Systemd unit file
-├── docker/
-│   ├── Dockerfile              # ARM64 build container
-│   └── Makefile                # Docker build helpers
-└── client_update/              # Design documents
-    ├── 01_discovery.md
-    ├── 02_plan.md
-    └── ...
-```
-
----
-
-## Supported Hardware Modules
-
-Acadia-Client includes adapters for **35 hardware modules** (with 16 additional modules planned):
-
-### Active Modules (35)
-
-| Category | Modules |
-|----------|---------|
-| **Compute** | CPU, GPU, Deep Learning Accelerator, Vision Accelerator |
-| **Memory** | System Memory, Storage |
-| **Thermal** | Thermal, Environmental |
-| **Power** | Power Management, Watchdog and Reset |
-| **Networking** | Ethernet, Ethernet Switch, Communication Interface |
-| **Connectivity** | USB, PCIe, External Connector |
-| **Peripherals** | GPIO, Camera Interfaces, Camera Module 3, Display Interfaces |
-| **Sensors** | IMU, GNSS |
-| **Audio/Video** | Audio Interfaces, Video Encode/Decode |
-| **System** | Clock and Timing, Software Interface, System Integration |
-| **Safety** | Functional Safety, Reliability, Security Features |
-| **Debug** | Debug and Development Interfaces, MCU Interface |
-| **Specialized** | Serializer/Deserializer, PoE HAT, Sense HAT |
-
-### Phase 3 Modules (16 — Planned)
-
-Accelerometer, Analog Input, Battery, Bluetooth, CAN Bus, eMMC, I²C, MIPI CSI, MIPI DSI, NVMe, PWM Output, RS-485, RTC, SD Card, SPI, UART
-
-### Stub Adapter
-
-Unrecognized modules fall back to `StubAdapter`, which logs test invocations but returns honest SKIPPED results.
-
----
-
-## Development
-
-### Coding Standards
-
-- **Language**: C++17
-- **Style**: Follow existing conventions (see `.clang-format` if present)
-- **Logging**: Use `spdlog` macros (`spdlog::info()`, `spdlog::error()`, etc.)
-- **Error Handling**: Return `bool` or `Status` from init methods; log errors before returning
-
-### Adding a New Module Adapter
-
-1. **Create adapter files**:
-   ```bash
-   touch src/registry/adapters/my_module_adapter.h
-   touch src/registry/adapters/my_module_adapter.cc
-   ```
-
-2. **Implement `AdapterBase` interface**:
-   ```cpp
-   // my_module_adapter.h
-   #pragma once
-   #include "registry/AdapterBase.h"
-   
-   class MyModuleAdapter : public AdapterBase {
-   public:
-       std::string module_id() const override { return "my_module"; }
-       hal::TestResult run_test(const std::string& test_id, const TestParameters& params) override;
-   };
-   ```
-
-3. **Register in `app.cpp`**:
-   ```cpp
-   #include "registry/adapters/my_module_adapter.h"
-   // ...
-   reg->register_adapter(std::make_unique<MyModuleAdapter>());
-   ```
-
-4. **Build and test**:
-   ```bash
-   make build
-   ./build/native/bin/acadia-client --config /etc/acadia/client.conf
-   ```
-
----
-
-## Troubleshooting
-
-### Common Issues
-
-#### 1. **gRPC connection fails**
-   ```
-   [ERROR] StreamClient failed to connect to 192.168.1.100:50051
-   ```
-   **Solution**:
-   - Verify `server_address` in `/etc/acadia/client.conf`
-   - Check network connectivity: `ping 192.168.1.100`
-   - Ensure Acadia-Server is running and reachable
-   - Check firewall rules: `sudo ufw status`
-
-#### 2. **Missing `grpc_cpp_plugin`**
-   ```
-   CMake Error: grpc_cpp_plugin not found
-   ```
-   **Solution**:
-   ```bash
-   sudo apt-get install -y protobuf-compiler-grpc
-   # OR build from source (see Dockerfile)
-   ```
-
-#### 3. **Spool database locked**
-   ```
-   [ERROR] Spool::init failed: database is locked
-   ```
-   **Solution**:
-   - Stop conflicting instance: `sudo systemctl stop acadia-client`
-   - Check for stale processes: `ps aux | grep acadia-client`
-   - Remove lock if safe: `rm /var/lib/acadia/spool/spool.db-shm`
-
-#### 4. **Permission denied on `/var/lib/acadia`**
-   ```
-   [ERROR] Failed to create spool.db: Permission denied
-   ```
-   **Solution**:
-   ```bash
-   sudo chown -R acadia:acadia /var/lib/acadia
-   sudo chmod 0755 /var/lib/acadia
-   ```
-
-#### 5. **HAL library not found**
-   ```
-   CMake Error: Could not find Acadia-HAL
-   ```
-   **Solution**:
-   - Ensure `Acadia-HAL` is in sibling directory:
-     ```bash
-     ls -ld ../Acadia-HAL  # Should exist
-     ```
-   - Clone HAL repository: `git clone <hal-repo> ../Acadia-HAL`
-
-#### 6. **Port 50052 already in use**
-   ```
-   [ERROR] HalService failed to bind: Address already in use
-   ```
-   **Solution**:
-   - Check what's using the port: `sudo lsof -i :50052`
-   - Change `hal_service_port` in config, or kill conflicting process
-
----
-
-### Debug Logging
-
-Enable verbose logging:
-```bash
-SPDLOG_LEVEL=debug /usr/bin/acadia-client --config /etc/acadia/client.conf
-```
-
-Or modify `main.cpp` and rebuild:
-```cpp
-spdlog::set_level(spdlog::level::debug);  // Change from ::info
-```
-
----
-
-### Getting Help
-
-- **Check logs**: `journalctl -u acadia-client.service -n 200`
-- **Inspect spool**: `sqlite3 /var/lib/acadia/spool/spool.db ".tables"`
-- **Test connectivity**: `grpcurl -plaintext <server_ip>:50051 list`
-- **GitHub Issues**: Report bugs with full logs and config (redact sensitive data)
-
----
-
-## License
-
-[Specify license here — e.g., MIT, Apache 2.0, Proprietary]
-
----
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/my-adapter`)
-3. Commit changes (`git commit -am 'Add XYZ adapter'`)
-4. Push to branch (`git push origin feature/my-adapter`)
-5. Open a Pull Request
-
-**Guidelines**:
-- Add tests for new functionality
-- Update documentation
-- Follow existing code style
-- Ensure CI passes
-
----
-
-## Acknowledgments
-
-- Built for IV&V hardware validation on Raspberry Pi 5 and NVIDIA Jetson platforms
-- Uses gRPC for efficient client-server communication
-- Protocol Buffers for portable serialization
-- SQLite3 for durable local storage
-
----
-
-**Questions?** Contact the Acadia development team or file an issue on GitHub.
+- `conf/client.conf.sample` — installed to `/etc/arches/client.conf`.
+- Runtime state: `/var/lib/arches` (SQLite spool, logs).
+- `systemd/arches-client.service` — runs `/usr/bin/arches-client` as user
+  `arches`, starts both the ClientService stream (50051) and HalService (50052).
+
+## Tests
+
+| Test | Covers |
+|---|---|
+| `test_result_serializer` | `hal::TestResult` ↔ proto `TestResult[Any]` round-trip |
+| `test_run_orchestrator` | seq/timestamp stamping, spool-full backpressure |
+| `test_adapter_registry` | dispatch, missing→ERROR, throw→ERROR, stub→SKIPPED, replace |
+| `test_app_wiring` | every `modules.yaml` module gets an adapter; no silent drop |
+
+## Contracts (do not change without approval — §5)
+
+| Contract | Binds | Lives in |
+|---|---|---|
+| HAL API | HAL ↔ Client | `../Arches-HAL/include`, `lib_base.h` |
+| gRPC `.proto` | Client ↔ Server | `../Arches-HAL/protos` (`client_service`, `hal_service`, modules) |
+| Proto packages | wire | `acadia.stream`, `hal.common`, `hal`, `hal.modules.*` — **unchanged** |
+
+The proto packages keep the `acadia.*` names because they are the shared wire
+contract with Arches-Server and Arches-PySDK. Renaming them would be a §5
+breaking change. Only the client's own C++ namespace is `arches::client`.

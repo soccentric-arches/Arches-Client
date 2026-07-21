@@ -8,7 +8,7 @@
 
 class ExternalConnectorTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class ExternalConnectorAdapter final : public AdapterBase {
 public:
@@ -22,4 +22,4 @@ private:
     std::unique_ptr<ExternalConnectorTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

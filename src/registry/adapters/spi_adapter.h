@@ -5,7 +5,7 @@
 
 class SpiTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class SpiAdapter final : public AdapterBase {
 public:
@@ -18,4 +18,4 @@ private:
     std::unique_ptr<SpiTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

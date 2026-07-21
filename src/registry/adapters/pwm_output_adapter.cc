@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 PwmOutputAdapter::PwmOutputAdapter() : hal_(std::make_unique<PwmOutputTesting>()) {}
 PwmOutputAdapter::~PwmOutputAdapter() = default;
@@ -30,4 +30,4 @@ std::vector<hal::TestResult> PwmOutputAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

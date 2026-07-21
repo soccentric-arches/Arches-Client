@@ -8,7 +8,7 @@
 
 class GpioTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class GpioAdapter final : public AdapterBase {
 public:
@@ -22,4 +22,4 @@ private:
     std::unique_ptr<GpioTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

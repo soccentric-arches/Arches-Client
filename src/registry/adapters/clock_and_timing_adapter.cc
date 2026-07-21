@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 ClockAndTimingAdapter::ClockAndTimingAdapter() : hal_(std::make_unique<ClockAndTimingTesting>()) {}
 ClockAndTimingAdapter::~ClockAndTimingAdapter() = default;
@@ -35,4 +35,4 @@ std::vector<hal::TestResult> ClockAndTimingAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

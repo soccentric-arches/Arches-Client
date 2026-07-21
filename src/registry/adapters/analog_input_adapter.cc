@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 AnalogInputAdapter::AnalogInputAdapter() : hal_(std::make_unique<AnalogInputTesting>()) {}
 AnalogInputAdapter::~AnalogInputAdapter() = default;
@@ -30,4 +30,4 @@ std::vector<hal::TestResult> AnalogInputAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

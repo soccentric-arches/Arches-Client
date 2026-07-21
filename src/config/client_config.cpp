@@ -4,10 +4,10 @@
 #include <toml++/toml.hpp>
 #include <spdlog/spdlog.h>
 
-namespace acadia::client::config {
+namespace arches::client::config {
 
 namespace {
-static constexpr const char* kDefaultClientIdPath = "/var/lib/acadia/client_id";
+static constexpr const char* kDefaultClientIdPath = "/var/lib/arches/client_id";
 } // namespace
 
 Result<ClientConfig> ClientConfig::load(const std::string& path) {
@@ -83,4 +83,4 @@ Result<ClientConfig> ClientConfig::load(const std::string& path) {
     return Result<ClientConfig>::ok(std::move(cfg));
 }
 
-} // namespace acadia::client::config
+} // namespace arches::client::config

@@ -10,7 +10,7 @@
 #include <thread>
 #include <vector>
 
-namespace acadia::client {
+namespace arches::client {
 
 struct LogCollectorConfig {
     std::vector<std::string> extra_paths;  // additional files to tail
@@ -52,4 +52,4 @@ private:
     int64_t             batch_seq_ = 0;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

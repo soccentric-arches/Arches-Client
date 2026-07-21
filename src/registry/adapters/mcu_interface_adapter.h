@@ -8,7 +8,7 @@
 
 class McuInterfaceTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class McuInterfaceAdapter final : public AdapterBase {
 public:
@@ -22,4 +22,4 @@ private:
     std::unique_ptr<McuInterfaceTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

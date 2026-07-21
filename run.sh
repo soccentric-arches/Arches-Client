@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# Acadia-Client Development Run Script
+# Arches-Client Development Run Script
 # Creates necessary directories and runs the client with development config
 
 # Color output
@@ -11,29 +11,29 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${GREEN}=== Acadia-Client Development Run ===${NC}"
+echo -e "${GREEN}=== Arches-Client Development Run ===${NC}"
 
-# Kill any existing acadia-client processes
-echo -e "${BLUE}Checking for existing acadia-client processes...${NC}"
-if pgrep -x "acadia-client" > /dev/null; then
-    echo -e "${YELLOW}Found running acadia-client process(es). Terminating...${NC}"
-    pkill -SIGTERM acadia-client || true
+# Kill any existing arches-client processes
+echo -e "${BLUE}Checking for existing arches-client processes...${NC}"
+if pgrep -x "arches-client" > /dev/null; then
+    echo -e "${YELLOW}Found running arches-client process(es). Terminating...${NC}"
+    pkill -SIGTERM arches-client || true
     sleep 1
     
     # Force kill if still running
-    if pgrep -x "acadia-client" > /dev/null; then
+    if pgrep -x "arches-client" > /dev/null; then
         echo -e "${YELLOW}Process still running, force killing...${NC}"
-        pkill -SIGKILL acadia-client || true
+        pkill -SIGKILL arches-client || true
         sleep 1
     fi
-    echo -e "${GREEN}✓ All acadia-client processes terminated${NC}"
+    echo -e "${GREEN}✓ All arches-client processes terminated${NC}"
 else
     echo -e "${GREEN}✓ No existing processes found${NC}"
 fi
 
 # Clean up stale socket files and locks
 echo -e "${BLUE}Cleaning up stale sockets and locks...${NC}"
-rm -f /tmp/acadia-diag.sock 2>/dev/null || true
+rm -f /tmp/arches-diag.sock 2>/dev/null || true
 rm -f ./data/spool/spool.db-shm 2>/dev/null || true
 rm -f ./data/spool/spool.db-wal 2>/dev/null || true
 echo -e "${GREEN}✓ Cleanup complete${NC}"
@@ -42,12 +42,12 @@ echo -e "${GREEN}✓ Cleanup complete${NC}"
 echo -e "${BLUE}Creating required directories...${NC}"
 mkdir -p ./data/spool
 mkdir -p ./data/logs
-mkdir -p /tmp/acadia 2>/dev/null || true
+mkdir -p /tmp/arches 2>/dev/null || true
 echo -e "${GREEN}✓ Directories ready${NC}"
 
 # Check if binary exists
-if [ ! -f "./build/bin/acadia-client" ]; then
-    echo -e "${RED}ERROR: Binary not found at ./build/bin/acadia-client${NC}"
+if [ ! -f "./build/bin/arches-client" ]; then
+    echo -e "${RED}ERROR: Binary not found at ./build/bin/arches-client${NC}"
     echo "Please build the project first:"
     echo "  make build"
     echo "  OR: cd build && cmake --build . --parallel"
@@ -61,7 +61,7 @@ if [ ! -f "./conf/client.conf.dev" ]; then
 fi
 
 echo ""
-echo -e "${YELLOW}Starting acadia-client with debug logging...${NC}"
+echo -e "${YELLOW}Starting arches-client with debug logging...${NC}"
 echo "Config: ./conf/client.conf.dev"
 echo "Spool:  ./data/spool/spool.db"
 echo "Press Ctrl+C to stop"
@@ -71,9 +71,9 @@ echo ""
 cleanup() {
     echo ""
     echo -e "${YELLOW}Caught signal, cleaning up...${NC}"
-    pkill -SIGTERM acadia-client 2>/dev/null || true
+    pkill -SIGTERM arches-client 2>/dev/null || true
     sleep 1
-    rm -f /tmp/acadia-diag.sock 2>/dev/null || true
+    rm -f /tmp/arches-diag.sock 2>/dev/null || true
     echo -e "${GREEN}✓ Cleanup complete${NC}"
     exit 0
 }
@@ -81,4 +81,4 @@ cleanup() {
 trap cleanup SIGINT SIGTERM
 
 # Run with debug logging
-SPDLOG_LEVEL=debug ./build/bin/acadia-client --config ./conf/client.conf.dev
+SPDLOG_LEVEL=debug ./build/bin/arches-client --config ./conf/client.conf.dev

@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 GpuAdapter::GpuAdapter() : hal_(std::make_unique<GpuTesting>()) {}
 GpuAdapter::~GpuAdapter() = default;
@@ -35,4 +35,4 @@ std::vector<hal::TestResult> GpuAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

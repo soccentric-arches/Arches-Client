@@ -8,7 +8,7 @@
 
 class PoeHatTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class PoeHatAdapter final : public AdapterBase {
 public:
@@ -22,4 +22,4 @@ private:
     std::unique_ptr<PoeHatTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

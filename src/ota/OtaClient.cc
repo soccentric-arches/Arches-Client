@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include <mutex>
 
-namespace acadia::client {
+namespace arches::client {
 
 static std::mutex ota_mtx;
 static bool       ota_running = false;
@@ -50,4 +50,4 @@ bool OtaClient::rollback() {
     return true;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

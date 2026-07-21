@@ -8,7 +8,7 @@
 
 #include <chrono>
 
-namespace acadia::client {
+namespace arches::client {
 
 using namespace acadia::stream;
 
@@ -128,4 +128,4 @@ done:
     connected_.store(false);
 }
 
-} // namespace acadia::client
+} // namespace arches::client

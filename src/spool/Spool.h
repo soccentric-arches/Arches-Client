@@ -16,7 +16,7 @@
 
 struct sqlite3;
 
-namespace acadia::client {
+namespace arches::client {
 
 // Opaque serialized batch payload (raw protobuf bytes).
 using Bytes = std::vector<uint8_t>;
@@ -143,4 +143,4 @@ private:
     void write_schema_version(int version);
 };
 
-} // namespace acadia::client
+} // namespace arches::client

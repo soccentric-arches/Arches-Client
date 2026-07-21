@@ -1,6 +1,6 @@
 #include "registry/adapters/stub_adapter.h"
 
-namespace acadia::client {
+namespace arches::client {
 
 std::vector<hal::TestResult> StubAdapter::run(int /*mode*/,
                                                const std::vector<uint8_t>& /*config*/) {
@@ -16,4 +16,4 @@ std::vector<hal::TestResult> StubAdapter::run(int /*mode*/,
     return {std::move(r)};
 }
 
-} // namespace acadia::client
+} // namespace arches::client

@@ -13,7 +13,7 @@
 
 using namespace acadia::stream;
 
-namespace acadia::client {
+namespace arches::client {
 
 // ---------------------------------------------------------------------------
 // ctor / dtor
@@ -160,4 +160,4 @@ void LogCollector::ship_batch(const std::vector<std::string>& lines,
     stream_.send(std::move(msg));
 }
 
-} // namespace acadia::client
+} // namespace arches::client

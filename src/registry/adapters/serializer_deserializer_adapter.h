@@ -8,7 +8,7 @@
 
 class SerializerDeserializerTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class SerializerDeserializerAdapter final : public AdapterBase {
 public:
@@ -22,4 +22,4 @@ private:
     std::unique_ptr<SerializerDeserializerTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

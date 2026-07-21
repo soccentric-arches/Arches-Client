@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 EnvironmentalAdapter::EnvironmentalAdapter() : hal_(std::make_unique<EnvironmentalTesting>()) {}
 EnvironmentalAdapter::~EnvironmentalAdapter() = default;
@@ -35,4 +35,4 @@ std::vector<hal::TestResult> EnvironmentalAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

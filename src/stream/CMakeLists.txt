@@ -1,13 +1,13 @@
-add_library(acadia_stream STATIC
+add_library(arches_stream STATIC
     StreamClient.cc
 )
 
-target_include_directories(acadia_stream PRIVATE
+target_include_directories(arches_stream PRIVATE
     ${CMAKE_SOURCE_DIR}/src
 )
 
-target_link_libraries(acadia_stream PRIVATE
-    acadia_protos
-    ${ACADIA_GRPC_LIBRARIES}
+# gRPC runtime + proto message types come transitively from hal_protos_shared.
+target_link_libraries(arches_stream PRIVATE
+    hal_protos_shared
     spdlog::spdlog
 )

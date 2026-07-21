@@ -5,7 +5,7 @@
 
 class AccelerometerTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class AccelerometerAdapter final : public AdapterBase {
 public:
@@ -18,4 +18,4 @@ private:
     std::unique_ptr<AccelerometerTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

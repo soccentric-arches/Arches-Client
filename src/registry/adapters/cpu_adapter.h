@@ -12,7 +12,7 @@
 
 class CpuTesting;  // forward-declare to minimise include fan-out in headers
 
-namespace acadia::client {
+namespace arches::client {
 
 class CpuAdapter final : public AdapterBase {
 public:
@@ -28,4 +28,4 @@ private:
     std::unique_ptr<CpuTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

@@ -5,7 +5,7 @@
 
 class MipiCsiTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class MipiCsiAdapter final : public AdapterBase {
 public:
@@ -18,4 +18,4 @@ private:
     std::unique_ptr<MipiCsiTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

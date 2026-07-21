@@ -20,7 +20,7 @@
 
 namespace {
 
-using namespace acadia::client::hal_bridge;
+using namespace arches::client::hal_bridge;
 
 // ─── Helper: build a minimal valid TestResult ────────────────────────────────
 

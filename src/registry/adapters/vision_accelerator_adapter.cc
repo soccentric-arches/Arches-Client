@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 VisionAcceleratorAdapter::VisionAcceleratorAdapter() : hal_(std::make_unique<VisionAcceleratorTesting>()) {}
 VisionAcceleratorAdapter::~VisionAcceleratorAdapter() = default;
@@ -35,4 +35,4 @@ std::vector<hal::TestResult> VisionAcceleratorAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

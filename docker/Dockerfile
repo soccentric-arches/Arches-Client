@@ -1,5 +1,5 @@
-# Raspberry Pi 5 (BCM2712 / RP1) build container
-# Uses Ubuntu 22.04 LTS for ARM64 — runs natively on Pi5 or via QEMU on x86_64
+# NVIDIA Jetson build container (aarch64; runs natively on Jetson or via QEMU on x86_64)
+# Uses Ubuntu 22.04 LTS for ARM64 (Jetson target)
 FROM ubuntu:22.04
 
 ARG UID=1000

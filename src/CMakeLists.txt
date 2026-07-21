@@ -1,6 +1,6 @@
 # ---------------------------------------------------------------------------
 # src/CMakeLists.txt
-# Adds each module as a static library then defines the main executable.
+# Adds each subsystem as a static library then defines the main executable.
 # Subdirectories are ordered leaf-first so inter-target references resolve.
 # ---------------------------------------------------------------------------
 
@@ -20,39 +20,38 @@ add_subdirectory(hal_service)
 # Main executable
 # ---------------------------------------------------------------------------
 
-add_executable(acadia-client
+add_executable(arches-client
     main.cpp
     app.cpp
 )
 
-target_include_directories(acadia-client PRIVATE
+target_include_directories(arches-client PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/../Acadia-HAL/src
+    ${CMAKE_SOURCE_DIR}/../Arches-HAL/src
 )
 
-target_link_libraries(acadia-client PRIVATE
-    acadia_config
-    acadia_diag
-    acadia_hal_bridge
-    acadia_hal_service
-    acadia_janitor
-    acadia_log
-    acadia_ota
-    acadia_registry
-    acadia_run
-    acadia_spool
-    acadia_stream
-    acadia_protos
+# gRPC runtime + protobuf are carried transitively by hal_protos_shared.
+target_link_libraries(arches-client PRIVATE
+    arches_config
+    arches_diag
+    arches_hal_bridge
+    arches_hal_service
+    arches_janitor
+    arches_log
+    arches_ota
+    arches_registry
+    arches_run
+    arches_spool
+    arches_stream
+    hal_protos_shared
     spdlog::spdlog
     tomlplusplus::tomlplusplus
     yaml-cpp::yaml-cpp
     SQLite::SQLite3
-    ${ACADIA_GRPC_LIBRARIES}
-    protobuf::libprotobuf
 )
 
-target_compile_definitions(acadia-client PRIVATE
-    ACADIA_CLIENT_VERSION="${PROJECT_VERSION}"
+target_compile_definitions(arches-client PRIVATE
+    ARCHES_CLIENT_VERSION="${PROJECT_VERSION}"
 )
 
-set_compiler_warnings(acadia-client)
+set_compiler_warnings(arches-client)

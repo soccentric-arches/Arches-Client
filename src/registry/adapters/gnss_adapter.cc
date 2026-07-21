@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 GnssAdapter::GnssAdapter() : hal_(std::make_unique<GnssTesting>()) {}
 GnssAdapter::~GnssAdapter() = default;
@@ -35,4 +35,4 @@ std::vector<hal::TestResult> GnssAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

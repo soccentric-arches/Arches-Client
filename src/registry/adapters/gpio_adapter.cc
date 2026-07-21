@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 GpioAdapter::GpioAdapter() : hal_(std::make_unique<GpioTesting>()) {}
 GpioAdapter::~GpioAdapter() = default;
@@ -35,4 +35,4 @@ std::vector<hal::TestResult> GpioAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

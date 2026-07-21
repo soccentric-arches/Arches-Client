@@ -8,7 +8,7 @@
 
 class EthernetTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class EthernetAdapter final : public AdapterBase {
 public:
@@ -22,4 +22,4 @@ private:
     std::unique_ptr<EthernetTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

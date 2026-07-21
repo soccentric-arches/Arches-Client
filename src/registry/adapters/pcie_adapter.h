@@ -8,7 +8,7 @@
 
 class PcieTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class PcieAdapter final : public AdapterBase {
 public:
@@ -22,4 +22,4 @@ private:
     std::unique_ptr<PcieTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

@@ -22,7 +22,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace acadia::client::hal_service {
+namespace arches::client::hal_service {
 
 class HalServiceImpl final : public hal::HalService::Service {
 public:
@@ -107,4 +107,4 @@ private:
     std::unordered_map<std::string, std::shared_ptr<Session>> sessions_; // key = module_id
 };
 
-} // namespace acadia::client::hal_service
+} // namespace arches::client::hal_service

@@ -8,7 +8,7 @@
 
 class CameraInterfacesTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class CameraInterfacesAdapter final : public AdapterBase {
 public:
@@ -22,4 +22,4 @@ private:
     std::unique_ptr<CameraInterfacesTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

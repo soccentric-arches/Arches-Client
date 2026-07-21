@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 ExternalConnectorAdapter::ExternalConnectorAdapter() : hal_(std::make_unique<ExternalConnectorTesting>()) {}
 ExternalConnectorAdapter::~ExternalConnectorAdapter() = default;
@@ -35,4 +35,4 @@ std::vector<hal::TestResult> ExternalConnectorAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

@@ -5,7 +5,7 @@
 
 class RtcTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class RtcAdapter final : public AdapterBase {
 public:
@@ -18,4 +18,4 @@ private:
     std::unique_ptr<RtcTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

@@ -1,8 +1,8 @@
-# Acadia-Client development configuration
+# Arches-Client development configuration
 # Local development version with paths that don't require root
 
 # ---------------------------------------------------------------------------
-# gRPC server (outbound — connects to Acadia-Server)
+# gRPC server (outbound — connects to Arches-Server)
 # ---------------------------------------------------------------------------
 
 server_address = "127.0.0.1"   # localhost for development
@@ -27,9 +27,9 @@ log_spool_cap_bytes    = 524288000    # 500 MiB
 # TLS (leave empty for plaintext — lab-subnet default in v1)
 # ---------------------------------------------------------------------------
 
-# tls_ca   = "/etc/acadia/ca.crt"
-# tls_cert = "/etc/acadia/client.crt"
-# tls_key  = "/etc/acadia/client.key"
+# tls_ca   = "/etc/arches/ca.crt"
+# tls_cert = "/etc/arches/client.crt"
+# tls_key  = "/etc/arches/client.key"
 
 # ---------------------------------------------------------------------------
 # Extra log paths to tail and forward to the server

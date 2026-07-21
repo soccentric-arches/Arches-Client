@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 FunctionalSafetyAdapter::FunctionalSafetyAdapter() : hal_(std::make_unique<FunctionalSafetyTesting>()) {}
 FunctionalSafetyAdapter::~FunctionalSafetyAdapter() = default;
@@ -35,4 +35,4 @@ std::vector<hal::TestResult> FunctionalSafetyAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

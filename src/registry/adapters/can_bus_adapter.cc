@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 CanBusAdapter::CanBusAdapter() : hal_(std::make_unique<CanBusTesting>()) {}
 CanBusAdapter::~CanBusAdapter() = default;
@@ -30,4 +30,4 @@ std::vector<hal::TestResult> CanBusAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

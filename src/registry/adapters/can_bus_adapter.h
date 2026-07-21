@@ -5,7 +5,7 @@
 
 class CanBusTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class CanBusAdapter final : public AdapterBase {
 public:
@@ -18,4 +18,4 @@ private:
     std::unique_ptr<CanBusTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

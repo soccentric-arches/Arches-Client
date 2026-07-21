@@ -10,7 +10,7 @@
 #include <string>
 #include <thread>
 
-namespace acadia::client {
+namespace arches::client {
 
 struct JanitorConfig {
     std::chrono::hours  retention{24};
@@ -37,4 +37,4 @@ private:
     std::thread       thread_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

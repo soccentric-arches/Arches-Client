@@ -5,7 +5,7 @@
 
 class Rs485Testing;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class Rs485Adapter final : public AdapterBase {
 public:
@@ -18,4 +18,4 @@ private:
     std::unique_ptr<Rs485Testing> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

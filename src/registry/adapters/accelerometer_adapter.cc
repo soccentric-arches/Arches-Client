@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 AccelerometerAdapter::AccelerometerAdapter() : hal_(std::make_unique<AccelerometerTesting>()) {}
 AccelerometerAdapter::~AccelerometerAdapter() = default;
@@ -30,4 +30,4 @@ std::vector<hal::TestResult> AccelerometerAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

@@ -15,7 +15,7 @@
 // gRPC forward declarations are version-dependent; include the minimal header.
 #include <grpcpp/server.h>
 
-namespace acadia::client {
+namespace arches::client {
 
 // Top-level application object. Owns all subsystems.
 // Constructed in main, never copied.
@@ -54,5 +54,5 @@ private:
     std::thread                     hal_service_thread_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client
 

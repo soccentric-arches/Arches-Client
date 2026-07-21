@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 SenseHatAdapter::SenseHatAdapter() : hal_(std::make_unique<SenseHatTesting>()) {}
 SenseHatAdapter::~SenseHatAdapter() = default;
@@ -35,4 +35,4 @@ std::vector<hal::TestResult> SenseHatAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

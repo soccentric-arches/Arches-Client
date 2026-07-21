@@ -8,7 +8,7 @@
 
 class GnssTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class GnssAdapter final : public AdapterBase {
 public:
@@ -22,4 +22,4 @@ private:
     std::unique_ptr<GnssTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 BatteryAdapter::BatteryAdapter() : hal_(std::make_unique<BatteryTesting>()) {}
 BatteryAdapter::~BatteryAdapter() = default;
@@ -30,4 +30,4 @@ std::vector<hal::TestResult> BatteryAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

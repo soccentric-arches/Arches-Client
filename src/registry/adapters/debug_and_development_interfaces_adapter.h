@@ -8,7 +8,7 @@
 
 class DebugAndDevelopmentInterfaces;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class DebugAndDevelopmentInterfacesAdapter final : public AdapterBase {
 public:
@@ -22,4 +22,4 @@ private:
     std::unique_ptr<DebugAndDevelopmentInterfaces> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

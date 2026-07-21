@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 PcieAdapter::PcieAdapter() : hal_(std::make_unique<PcieTesting>()) {}
 PcieAdapter::~PcieAdapter() = default;
@@ -35,4 +35,4 @@ std::vector<hal::TestResult> PcieAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

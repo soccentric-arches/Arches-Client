@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 CameraModule3Adapter::CameraModule3Adapter() : hal_(std::make_unique<CameraModule3Testing>()) {}
 CameraModule3Adapter::~CameraModule3Adapter() = default;
@@ -35,4 +35,4 @@ std::vector<hal::TestResult> CameraModule3Adapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

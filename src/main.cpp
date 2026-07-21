@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
     spdlog::set_pattern("[%Y-%m-%dT%H:%M:%S.%e] [%^%l%$] %v");
     spdlog::set_level(spdlog::level::info);
 
-    const char* config_path = "/etc/acadia/client.conf";
+    const char* config_path = "/etc/arches/client.conf";
     for (int i = 1; i + 1 < argc; ++i) {
         if (std::strcmp(argv[i], "--config") == 0) {
             config_path = argv[i + 1];
@@ -56,18 +56,18 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    spdlog::info("acadia-client v{} starting, config={}",
-        ACADIA_CLIENT_VERSION, config_path);
+    spdlog::info("arches-client v{} starting, config={}",
+        ARCHES_CLIENT_VERSION, config_path);
 
     install_signal_handlers();
 
-    auto cfg = acadia::client::config::ClientConfig::load(config_path);
+    auto cfg = arches::client::config::ClientConfig::load(config_path);
     if (!cfg) {
         spdlog::critical("failed to load config: {}", cfg.error());
         return 1;
     }
 
-    acadia::client::App app(std::move(*cfg));
+    arches::client::App app(std::move(*cfg));
     if (!app.init()) {
         spdlog::critical("app init failed");
         return 1;
@@ -75,6 +75,6 @@ int main(int argc, char* argv[]) {
 
     app.run(g_shutdown);
 
-    spdlog::info("acadia-client exiting cleanly");
+    spdlog::info("arches-client exiting cleanly");
     return 0;
 }

@@ -35,7 +35,7 @@ namespace acadia::stream {
     class TestResultBatch;
 }
 
-namespace acadia::client {
+namespace arches::client {
 
 // HAL invocation callback.
 // Returns one or more TestResult objects per call (one call == one tick).
@@ -110,4 +110,4 @@ private:
     std::unordered_map<std::string, acadia::stream::ConfigureRun> pending_configs_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

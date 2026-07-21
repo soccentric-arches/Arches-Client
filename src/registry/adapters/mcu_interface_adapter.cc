@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 McuInterfaceAdapter::McuInterfaceAdapter() : hal_(std::make_unique<McuInterfaceTesting>()) {}
 McuInterfaceAdapter::~McuInterfaceAdapter() = default;
@@ -35,4 +35,4 @@ std::vector<hal::TestResult> McuInterfaceAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

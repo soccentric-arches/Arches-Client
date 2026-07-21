@@ -8,7 +8,7 @@
 
 class StorageTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class StorageAdapter final : public AdapterBase {
 public:
@@ -22,4 +22,4 @@ private:
     std::unique_ptr<StorageTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

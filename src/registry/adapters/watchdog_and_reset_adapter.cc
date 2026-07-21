@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 WatchdogAndResetAdapter::WatchdogAndResetAdapter() : hal_(std::make_unique<WatchdogAndResetTesting>()) {}
 WatchdogAndResetAdapter::~WatchdogAndResetAdapter() = default;
@@ -35,4 +35,4 @@ std::vector<hal::TestResult> WatchdogAndResetAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

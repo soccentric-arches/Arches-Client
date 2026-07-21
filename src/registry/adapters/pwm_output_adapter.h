@@ -5,7 +5,7 @@
 
 class PwmOutputTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class PwmOutputAdapter final : public AdapterBase {
 public:
@@ -18,4 +18,4 @@ private:
     std::unique_ptr<PwmOutputTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

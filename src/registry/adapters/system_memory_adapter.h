@@ -7,7 +7,7 @@
 
 class SystemMemoryTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class SystemMemoryAdapter final : public AdapterBase {
 public:
@@ -21,4 +21,4 @@ private:
     std::unique_ptr<SystemMemoryTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

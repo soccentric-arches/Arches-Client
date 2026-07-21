@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 CommunicationInterfaceAdapter::CommunicationInterfaceAdapter() : hal_(std::make_unique<CommunicationInterfaceTesting>()) {}
 CommunicationInterfaceAdapter::~CommunicationInterfaceAdapter() = default;
@@ -35,4 +35,4 @@ std::vector<hal::TestResult> CommunicationInterfaceAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

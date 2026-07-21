@@ -8,7 +8,7 @@
 #include <spdlog/spdlog.h>
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 CpuAdapter::CpuAdapter() : hal_(std::make_unique<CpuTesting>()) {}
 
@@ -50,4 +50,4 @@ std::vector<hal::TestResult> CpuAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

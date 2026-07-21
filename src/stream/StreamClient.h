@@ -1,5 +1,5 @@
 #pragma once
-// stream/StreamClient.h — bidirectional gRPC stream to the Acadia Server.
+// stream/StreamClient.h — bidirectional gRPC stream to the Arches Server.
 //
 // Lifecycle:
 //   StreamClient is constructed with a channel + callbacks.
@@ -25,7 +25,7 @@ namespace acadia { namespace stream {
     class ServerMessage;
 }}  // namespace acadia::stream
 
-namespace acadia::client {
+namespace arches::client {
 
 // Callback invoked on every incoming ServerMessage.
 using ServerMessageCb = std::function<void(const acadia::stream::ServerMessage&)>;
@@ -73,4 +73,4 @@ private:
     std::queue<acadia::stream::ClientMessage> send_queue_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

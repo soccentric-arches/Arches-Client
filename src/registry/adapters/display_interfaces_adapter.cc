@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 DisplayInterfacesAdapter::DisplayInterfacesAdapter() : hal_(std::make_unique<DisplayInterfaces>()) {}
 DisplayInterfacesAdapter::~DisplayInterfacesAdapter() = default;
@@ -35,4 +35,4 @@ std::vector<hal::TestResult> DisplayInterfacesAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

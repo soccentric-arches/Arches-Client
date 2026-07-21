@@ -7,7 +7,7 @@
 
 using namespace acadia::stream;
 
-namespace acadia::client {
+namespace arches::client {
 
 Janitor::Janitor(Spool& spool, StreamClient& stream, JanitorConfig cfg)
     : spool_(spool), stream_(stream), cfg_(std::move(cfg)) {}
@@ -66,4 +66,4 @@ void Janitor::sweep() {
     spdlog::debug("janitor: sweep done, spool_bytes={}", spool_.result_bytes_used());
 }
 
-} // namespace acadia::client
+} // namespace arches::client

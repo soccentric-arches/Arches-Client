@@ -23,7 +23,7 @@
 
 namespace {
 
-using namespace acadia::client;
+using namespace arches::client;
 using namespace acadia::stream;
 
 // ─── Minimal Spool (in-memory) ────────────────────────────────────────────────
@@ -139,7 +139,7 @@ TEST(RunOrchestrator, SingleShotTimestampSet) {
     hal::common::TestResult proto_result;
     ASSERT_TRUE(batch.samples(0).payload().UnpackTo(&proto_result));
 
-    auto ts = acadia::client::hal_bridge::from_proto(proto_result.timestamp());
+    auto ts = arches::client::hal_bridge::from_proto(proto_result.timestamp());
     EXPECT_GE(ts, before);
     EXPECT_LE(ts, after);
 }

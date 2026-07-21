@@ -5,7 +5,7 @@
 
 class I2cTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class I2cAdapter final : public AdapterBase {
 public:
@@ -18,4 +18,4 @@ private:
     std::unique_ptr<I2cTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

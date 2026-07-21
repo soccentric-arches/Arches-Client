@@ -8,7 +8,7 @@
 #include <filesystem>
 #include <stdexcept>
 
-namespace acadia::client {
+namespace arches::client {
 
 // ---------------------------------------------------------------------------
 // helpers
@@ -427,4 +427,4 @@ int Spool::stored_schema_version() const {
     return ver;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

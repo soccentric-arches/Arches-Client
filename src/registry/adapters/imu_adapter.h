@@ -8,7 +8,7 @@
 
 class ImuTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class ImuAdapter final : public AdapterBase {
 public:
@@ -22,4 +22,4 @@ private:
     std::unique_ptr<ImuTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

@@ -8,7 +8,7 @@
 
 class SecurityFeaturesTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class SecurityFeaturesAdapter final : public AdapterBase {
 public:
@@ -22,4 +22,4 @@ private:
     std::unique_ptr<SecurityFeaturesTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

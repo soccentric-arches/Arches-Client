@@ -7,7 +7,7 @@
 
 class ThermalManagementTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class ThermalAdapter final : public AdapterBase {
 public:
@@ -21,4 +21,4 @@ private:
     std::unique_ptr<ThermalManagementTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

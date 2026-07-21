@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 SpiAdapter::SpiAdapter() : hal_(std::make_unique<SpiTesting>()) {}
 SpiAdapter::~SpiAdapter() = default;
@@ -30,4 +30,4 @@ std::vector<hal::TestResult> SpiAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

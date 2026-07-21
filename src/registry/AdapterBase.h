@@ -18,7 +18,7 @@
 #include <string>
 #include <vector>
 
-namespace acadia::client {
+namespace arches::client {
 
 class AdapterBase {
 public:
@@ -42,4 +42,4 @@ protected:
     AdapterBase() = default;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

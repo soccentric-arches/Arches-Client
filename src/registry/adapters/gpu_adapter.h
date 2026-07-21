@@ -8,7 +8,7 @@
 
 class GpuTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class GpuAdapter final : public AdapterBase {
 public:
@@ -22,4 +22,4 @@ private:
     std::unique_ptr<GpuTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

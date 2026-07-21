@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 SystemIntegrationAdapter::SystemIntegrationAdapter() : hal_(std::make_unique<SystemIntegrationTesting>()) {}
 SystemIntegrationAdapter::~SystemIntegrationAdapter() = default;
@@ -35,4 +35,4 @@ std::vector<hal::TestResult> SystemIntegrationAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

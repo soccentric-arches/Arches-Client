@@ -8,7 +8,7 @@
 #include <string>
 #include <functional>
 
-namespace acadia::client {
+namespace arches::client {
 
 using OtaStatusCb = std::function<void(const std::string& status,
                                         const std::string& message)>;
@@ -29,4 +29,4 @@ private:
     OtaStatusCb cb_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

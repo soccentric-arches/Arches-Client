@@ -12,7 +12,7 @@
 #include <chrono>
 #include <thread>
 
-namespace acadia::client::hal_service {
+namespace arches::client::hal_service {
 
 namespace {
 // Default cycle interval when the caller doesn't specify one.
@@ -49,7 +49,7 @@ hal::common::ResultEnvelope HalServiceImpl::make_envelope(
     hal::common::ExecutionMode mode,
     const hal::TestResult&     r)
 {
-    namespace br = acadia::client::hal_bridge;
+    namespace br = arches::client::hal_bridge;
 
     hal::common::ResultEnvelope env;
     env.set_module_id(module_id);
@@ -339,4 +339,4 @@ HalServiceImpl::find_session(const std::string& module_id,
     return ::grpc::Status::OK;
 }
 
-} // namespace acadia::client::hal_service
+} // namespace arches::client::hal_service

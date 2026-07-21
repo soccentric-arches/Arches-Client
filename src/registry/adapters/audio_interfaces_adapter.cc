@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 AudioInterfacesAdapter::AudioInterfacesAdapter() : hal_(std::make_unique<AudioInterfaces>()) {}
 AudioInterfacesAdapter::~AudioInterfacesAdapter() = default;
@@ -35,4 +35,4 @@ std::vector<hal::TestResult> AudioInterfacesAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

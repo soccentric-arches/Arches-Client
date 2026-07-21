@@ -5,7 +5,7 @@
 
 class NvmeTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class NvmeAdapter final : public AdapterBase {
 public:
@@ -18,4 +18,4 @@ private:
     std::unique_ptr<NvmeTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

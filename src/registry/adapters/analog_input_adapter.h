@@ -5,7 +5,7 @@
 
 class AnalogInputTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class AnalogInputAdapter final : public AdapterBase {
 public:
@@ -18,4 +18,4 @@ private:
     std::unique_ptr<AnalogInputTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

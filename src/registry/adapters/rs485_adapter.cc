@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 Rs485Adapter::Rs485Adapter() : hal_(std::make_unique<Rs485Testing>()) {}
 Rs485Adapter::~Rs485Adapter() = default;
@@ -30,4 +30,4 @@ std::vector<hal::TestResult> Rs485Adapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

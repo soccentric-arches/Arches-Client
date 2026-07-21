@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 PowerManagementAdapter::PowerManagementAdapter() : hal_(std::make_unique<PowerManagementTesting>()) {}
 PowerManagementAdapter::~PowerManagementAdapter() = default;
@@ -35,4 +35,4 @@ std::vector<hal::TestResult> PowerManagementAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

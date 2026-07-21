@@ -8,7 +8,7 @@
 
 class SoftwareInterfaceTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class SoftwareInterfaceAdapter final : public AdapterBase {
 public:
@@ -22,4 +22,4 @@ private:
     std::unique_ptr<SoftwareInterfaceTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

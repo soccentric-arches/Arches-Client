@@ -1,12 +1,12 @@
-# Acadia-Client sample configuration
-# Copy to /etc/acadia/client.conf and edit before starting the daemon.
+# Arches-Client sample configuration
+# Copy to /etc/arches/client.conf and edit before starting the daemon.
 # All fields shown with their default values unless marked REQUIRED.
 
 # ---------------------------------------------------------------------------
-# gRPC server (outbound — connects to Acadia-Server)
+# gRPC server (outbound — connects to Arches-Server)
 # ---------------------------------------------------------------------------
 
-server_address = "192.168.1.100"   # REQUIRED — IP or hostname of Acadia-Server
+server_address = "192.168.1.100"   # REQUIRED — IP or hostname of Arches-Server
 server_port    = 50051
 
 # ---------------------------------------------------------------------------
@@ -21,7 +21,7 @@ server_port    = 50051
 # Spool (durability store)
 # ---------------------------------------------------------------------------
 
-spool_path             = "/var/lib/acadia/spool/spool.db"
+spool_path             = "/var/lib/arches/spool/spool.db"
 result_spool_cap_bytes = 2147483648   # 2 GiB
 log_spool_cap_bytes    = 524288000    # 500 MiB
 
@@ -29,14 +29,14 @@ log_spool_cap_bytes    = 524288000    # 500 MiB
 # TLS (leave empty for plaintext — lab-subnet default in v1)
 # ---------------------------------------------------------------------------
 
-# tls_ca   = "/etc/acadia/ca.crt"
-# tls_cert = "/etc/acadia/client.crt"
-# tls_key  = "/etc/acadia/client.key"
+# tls_ca   = "/etc/arches/ca.crt"
+# tls_cert = "/etc/arches/client.crt"
+# tls_key  = "/etc/arches/client.key"
 
 # ---------------------------------------------------------------------------
 # Extra log paths to tail and forward to the server
 # ---------------------------------------------------------------------------
 
 # log_paths = [
-#   "/var/log/acadia/hal.log",
+#   "/var/log/arches/hal.log",
 # ]

@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 DeepLearningAcceleratorAdapter::DeepLearningAcceleratorAdapter() : hal_(std::make_unique<DeepLearningAcceleratorTesting>()) {}
 DeepLearningAcceleratorAdapter::~DeepLearningAcceleratorAdapter() = default;
@@ -35,4 +35,4 @@ std::vector<hal::TestResult> DeepLearningAcceleratorAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

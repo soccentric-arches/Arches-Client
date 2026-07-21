@@ -9,7 +9,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
-namespace acadia::client {
+namespace arches::client {
 
 DiagSocket::DiagSocket(std::string socket_path, DiagQueryFn query_fn)
     : path_(std::move(socket_path)), query_fn_(std::move(query_fn)) {}
@@ -84,4 +84,4 @@ void DiagSocket::accept_loop() {
     }
 }
 
-} // namespace acadia::client
+} // namespace arches::client

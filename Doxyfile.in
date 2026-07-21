@@ -1,9 +1,9 @@
 # Doxyfile.in
 
 # Project settings
-PROJECT_NAME           = "ACU Full Test"
+PROJECT_NAME           = "Arches-Client"
 PROJECT_NUMBER         = @PROJECT_VERSION@
-PROJECT_BRIEF          = "Comprehensive testing suite for ACU components"
+PROJECT_BRIEF          = "Arches on-target IV&V client (HAL API + gRPC to Arches-Server)"
 
 # Input settings
 INPUT                  = @CMAKE_CURRENT_SOURCE_DIR@/src @CMAKE_CURRENT_SOURCE_DIR@/tests

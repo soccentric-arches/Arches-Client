@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 I2cAdapter::I2cAdapter() : hal_(std::make_unique<I2cTesting>()) {}
 I2cAdapter::~I2cAdapter() = default;
@@ -30,4 +30,4 @@ std::vector<hal::TestResult> I2cAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

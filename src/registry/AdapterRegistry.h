@@ -15,7 +15,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace acadia::client {
+namespace arches::client {
 
 class AdapterRegistry {
 public:
@@ -44,4 +44,4 @@ private:
     std::unordered_map<std::string, std::unique_ptr<AdapterBase>> adapters_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

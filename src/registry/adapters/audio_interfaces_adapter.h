@@ -8,7 +8,7 @@
 
 class AudioInterfaces;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class AudioInterfacesAdapter final : public AdapterBase {
 public:
@@ -22,4 +22,4 @@ private:
     std::unique_ptr<AudioInterfaces> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 PoeHatAdapter::PoeHatAdapter() : hal_(std::make_unique<PoeHatTesting>()) {}
 PoeHatAdapter::~PoeHatAdapter() = default;
@@ -35,4 +35,4 @@ std::vector<hal::TestResult> PoeHatAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

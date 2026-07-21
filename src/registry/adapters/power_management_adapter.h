@@ -8,7 +8,7 @@
 
 class PowerManagementTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class PowerManagementAdapter final : public AdapterBase {
 public:
@@ -22,4 +22,4 @@ private:
     std::unique_ptr<PowerManagementTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

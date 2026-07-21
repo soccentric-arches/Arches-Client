@@ -9,7 +9,7 @@
 #include <vector>
 #include <shared_mutex>
 
-namespace acadia::client {
+namespace arches::client {
 
 struct ModuleEntry {
     std::string id;
@@ -47,4 +47,4 @@ private:
     std::unordered_set<std::string>              enabled_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

@@ -5,7 +5,7 @@
 
 class SdCardTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class SdCardAdapter final : public AdapterBase {
 public:
@@ -18,4 +18,4 @@ private:
     std::unique_ptr<SdCardTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

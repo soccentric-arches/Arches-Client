@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 NvmeAdapter::NvmeAdapter() : hal_(std::make_unique<NvmeTesting>()) {}
 NvmeAdapter::~NvmeAdapter() = default;
@@ -30,4 +30,4 @@ std::vector<hal::TestResult> NvmeAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

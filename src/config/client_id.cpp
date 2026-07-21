@@ -4,7 +4,7 @@
 #include <fstream>
 #include <spdlog/spdlog.h>
 
-namespace acadia::client::config {
+namespace arches::client::config {
 
 namespace {
 
@@ -72,4 +72,4 @@ Result<std::string> load_or_create_client_id(const std::string& path) {
     return uuid;
 }
 
-} // namespace acadia::client::config
+} // namespace arches::client::config

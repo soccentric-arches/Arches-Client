@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 ImuAdapter::ImuAdapter() : hal_(std::make_unique<ImuTesting>()) {}
 ImuAdapter::~ImuAdapter() = default;
@@ -35,4 +35,4 @@ std::vector<hal::TestResult> ImuAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

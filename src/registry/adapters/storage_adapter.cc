@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 StorageAdapter::StorageAdapter() : hal_(std::make_unique<StorageTesting>()) {}
 StorageAdapter::~StorageAdapter() = default;
@@ -35,4 +35,4 @@ std::vector<hal::TestResult> StorageAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

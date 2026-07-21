@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <spdlog/spdlog.h>
 
-namespace acadia::client {
+namespace arches::client {
 
 void AdapterRegistry::register_adapter(std::unique_ptr<AdapterBase> adapter) {
     const std::string id = adapter->module_id();
@@ -63,4 +63,4 @@ std::vector<std::string> AdapterRegistry::registered_ids() const {
     return ids;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

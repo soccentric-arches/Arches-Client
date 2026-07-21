@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 SystemMemoryAdapter::SystemMemoryAdapter() : hal_(std::make_unique<SystemMemoryTesting>()) {}
 SystemMemoryAdapter::~SystemMemoryAdapter() = default;
@@ -32,4 +32,4 @@ std::vector<hal::TestResult> SystemMemoryAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

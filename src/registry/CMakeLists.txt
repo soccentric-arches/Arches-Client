@@ -1,7 +1,7 @@
-add_library(acadia_registry STATIC
+add_library(arches_registry STATIC
     ModuleRegistry.cc
     AdapterRegistry.cc
-    # ── Real adapters (35 HAL-backed modules) ────────────────────────────
+    # ── Real adapters (35 HAL-backed modules present in Arches-HAL/src) ───
     adapters/audio_interfaces_adapter.cc
     adapters/camera_interfaces_adapter.cc
     adapters/camera_module3_adapter.cc
@@ -37,7 +37,11 @@ add_library(acadia_registry STATIC
     adapters/video_encode_decode_adapter.cc
     adapters/vision_accelerator_adapter.cc
     adapters/watchdog_and_reset_adapter.cc
-    # ── Phase 3 — 16 new real adapters (DISABLED: HAL libs not yet implemented) ──
+    # ── 16 module protos whose HAL C++ libs are not yet implemented. Their
+    # adapter files exist on disk but are NOT compiled here; the App registers
+    # a generic StubAdapter for each of these module IDs at runtime, which
+    # returns an honest SKIPPED/ERROR result (never a fake pass). Do not
+    # uncomment until the matching Arches-HAL/<id>_lib exists.
     # adapters/accelerometer_adapter.cc
     # adapters/analog_input_adapter.cc
     # adapters/battery_adapter.cc
@@ -54,22 +58,22 @@ add_library(acadia_registry STATIC
     # adapters/sd_card_adapter.cc
     # adapters/spi_adapter.cc
     # adapters/uart_adapter.cc
-    # ── Honest stub for unrecognised modules ─────────────────────────────
+    # ── Honest stub for any module ID without a real adapter ──────────────
     adapters/stub_adapter.cc
 )
 
-target_include_directories(acadia_registry PRIVATE
+target_include_directories(arches_registry PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/../Acadia-HAL/src
+    ${CMAKE_SOURCE_DIR}/../Arches-HAL/src
 )
 
-# acu_full_test is the combined HAL static library built by add_subdirectory
-# in the root CMakeLists.  PUBLIC propagates HAL includes to acadia-client.
-target_link_libraries(acadia_registry PUBLIC
+# acu_full_test is the combined Arches-HAL static library (every module +
+# lib_base) built by add_subdirectory in the root CMakeLists. PUBLIC propagates
+# the HAL include directories to arches-client and to the test executables.
+target_link_libraries(arches_registry PUBLIC
     acu_full_test
 )
-target_link_libraries(acadia_registry PRIVATE
-    acadia_protos
+target_link_libraries(arches_registry PRIVATE
     yaml-cpp::yaml-cpp
     spdlog::spdlog
 )

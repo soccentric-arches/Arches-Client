@@ -1,6 +1,6 @@
 [Unit]
-Description=Acadia Client — gRPC daemon for IV&V hardware validation
-Documentation=https://github.com/SiliconCentric/Acadia-Client
+Description=Arches Client — gRPC daemon for IV&V hardware validation (NVIDIA Jetson)
+Documentation=https://github.com/SiliconCentric/Arches-Client
 After=network-online.target
 Wants=network-online.target
 StartLimitIntervalSec=60
@@ -8,26 +8,26 @@ StartLimitBurst=5
 
 [Service]
 Type=simple
-User=acadia
-Group=acadia
-WorkingDirectory=/var/lib/acadia
+User=arches
+Group=arches
+WorkingDirectory=/var/lib/arches
 # Starts BOTH listeners:
 #   - ClientService (stream path → Server, default port 50051)
 #   - HalService    (SDK/E2E path,          default port 50052)
-ExecStart=/usr/bin/acadia-client
+ExecStart=/usr/bin/arches-client
 Restart=on-failure
 RestartSec=5
 
 # Logging
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=acadia-client
+SyslogIdentifier=arches-client
 
 # Hardening
 NoNewPrivileges=yes
 ProtectSystem=full
 PrivateTmp=yes
-ReadWritePaths=/var/lib/acadia
+ReadWritePaths=/var/lib/arches
 ProtectHome=yes
 ProtectKernelTunables=yes
 ProtectKernelModules=yes

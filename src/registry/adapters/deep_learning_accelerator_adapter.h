@@ -8,7 +8,7 @@
 
 class DeepLearningAcceleratorTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class DeepLearningAcceleratorAdapter final : public AdapterBase {
 public:
@@ -22,4 +22,4 @@ private:
     std::unique_ptr<DeepLearningAcceleratorTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

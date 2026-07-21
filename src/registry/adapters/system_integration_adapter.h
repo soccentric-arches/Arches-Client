@@ -8,7 +8,7 @@
 
 class SystemIntegrationTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class SystemIntegrationAdapter final : public AdapterBase {
 public:
@@ -22,4 +22,4 @@ private:
     std::unique_ptr<SystemIntegrationTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

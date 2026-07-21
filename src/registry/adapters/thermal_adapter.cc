@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 ThermalAdapter::ThermalAdapter() : hal_(std::make_unique<ThermalManagementTesting>()) {}
 ThermalAdapter::~ThermalAdapter() = default;
@@ -32,4 +32,4 @@ std::vector<hal::TestResult> ThermalAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

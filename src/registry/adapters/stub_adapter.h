@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-namespace acadia::client {
+namespace arches::client {
 
 class StubAdapter final : public AdapterBase {
 public:
@@ -21,4 +21,4 @@ private:
     std::string id_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

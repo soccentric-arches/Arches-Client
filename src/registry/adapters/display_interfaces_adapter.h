@@ -8,7 +8,7 @@
 
 class DisplayInterfaces;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class DisplayInterfacesAdapter final : public AdapterBase {
 public:
@@ -22,4 +22,4 @@ private:
     std::unique_ptr<DisplayInterfaces> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

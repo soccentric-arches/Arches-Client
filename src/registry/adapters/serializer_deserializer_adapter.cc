@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 SerializerDeserializerAdapter::SerializerDeserializerAdapter() : hal_(std::make_unique<SerializerDeserializerTesting>()) {}
 SerializerDeserializerAdapter::~SerializerDeserializerAdapter() = default;
@@ -35,4 +35,4 @@ std::vector<hal::TestResult> SerializerDeserializerAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

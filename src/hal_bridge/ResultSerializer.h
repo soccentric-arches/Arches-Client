@@ -26,7 +26,7 @@
 #include <google/protobuf/timestamp.pb.h>
 #include <google/protobuf/duration.pb.h>
 
-namespace acadia::client::hal_bridge {
+namespace arches::client::hal_bridge {
 
 // Maximum recursion depth for subtests. Trees deeper than this limit are
 // replaced with a single ERROR result with error_message explaining the cut.
@@ -91,4 +91,4 @@ hal::TestOutput         from_proto(const hal::common::TestOutput& out);
 hal::common::TestResult to_proto(const hal::TestResult& r, int depth = 0);
 hal::TestResult         from_proto(const hal::common::TestResult& r, int depth = 0);
 
-} // namespace acadia::client::hal_bridge
+} // namespace arches::client::hal_bridge

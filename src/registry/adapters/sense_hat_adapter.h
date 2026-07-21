@@ -8,7 +8,7 @@
 
 class SenseHatTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class SenseHatAdapter final : public AdapterBase {
 public:
@@ -22,4 +22,4 @@ private:
     std::unique_ptr<SenseHatTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

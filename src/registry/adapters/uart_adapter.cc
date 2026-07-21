@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 UartAdapter::UartAdapter() : hal_(std::make_unique<UartTesting>()) {}
 UartAdapter::~UartAdapter() = default;
@@ -30,4 +30,4 @@ std::vector<hal::TestResult> UartAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

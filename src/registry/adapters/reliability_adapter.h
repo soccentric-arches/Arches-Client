@@ -8,7 +8,7 @@
 
 class ReliabilityTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class ReliabilityAdapter final : public AdapterBase {
 public:
@@ -22,4 +22,4 @@ private:
     std::unique_ptr<ReliabilityTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

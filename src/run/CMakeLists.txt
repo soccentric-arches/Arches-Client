@@ -1,14 +1,14 @@
-add_library(acadia_run STATIC
+add_library(arches_run STATIC
     RunOrchestrator.cc
 )
 
-target_include_directories(acadia_run PRIVATE
+target_include_directories(arches_run PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/../Acadia-HAL/src
+    ${CMAKE_SOURCE_DIR}/../Arches-HAL/src
 )
 
-target_link_libraries(acadia_run PRIVATE
-    acadia_hal_bridge
-    acadia_protos
+target_link_libraries(arches_run PRIVATE
+    arches_hal_bridge
+    hal_protos_shared
     spdlog::spdlog
 )

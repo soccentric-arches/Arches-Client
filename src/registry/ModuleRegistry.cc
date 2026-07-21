@@ -3,7 +3,7 @@
 #include <yaml-cpp/yaml.h>
 #include <spdlog/spdlog.h>
 
-namespace acadia::client {
+namespace arches::client {
 
 int ModuleRegistry::load(const std::string& path) {
     YAML::Node root = YAML::LoadFile(path);
@@ -79,4 +79,4 @@ bool ModuleRegistry::enabled(const std::string& id) const {
     return enabled_.count(id) > 0;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

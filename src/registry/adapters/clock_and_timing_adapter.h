@@ -8,7 +8,7 @@
 
 class ClockAndTimingTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class ClockAndTimingAdapter final : public AdapterBase {
 public:
@@ -22,4 +22,4 @@ private:
     std::unique_ptr<ClockAndTimingTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

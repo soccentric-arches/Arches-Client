@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 SdCardAdapter::SdCardAdapter() : hal_(std::make_unique<SdCardTesting>()) {}
 SdCardAdapter::~SdCardAdapter() = default;
@@ -30,4 +30,4 @@ std::vector<hal::TestResult> SdCardAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

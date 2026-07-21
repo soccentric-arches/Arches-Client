@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 BluetoothAdapter::BluetoothAdapter() : hal_(std::make_unique<BluetoothTesting>()) {}
 BluetoothAdapter::~BluetoothAdapter() = default;
@@ -30,4 +30,4 @@ std::vector<hal::TestResult> BluetoothAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

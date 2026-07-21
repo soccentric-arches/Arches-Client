@@ -8,7 +8,7 @@
 
 class FunctionalSafetyTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class FunctionalSafetyAdapter final : public AdapterBase {
 public:
@@ -22,4 +22,4 @@ private:
     std::unique_ptr<FunctionalSafetyTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

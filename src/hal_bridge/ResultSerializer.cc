@@ -11,7 +11,7 @@
 #include <stdexcept>
 #include <variant>
 
-namespace acadia::client::hal_bridge {
+namespace arches::client::hal_bridge {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Explicit ExecutionMode mapping (proto int → proto enum).
@@ -294,4 +294,4 @@ hal::TestResult from_proto(const hal::common::TestResult& p, int depth) {
     return r;
 }
 
-} // namespace acadia::client::hal_bridge
+} // namespace arches::client::hal_bridge

@@ -8,7 +8,7 @@
 
 class VideoEncodeDecodeTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class VideoEncodeDecodeAdapter final : public AdapterBase {
 public:
@@ -22,4 +22,4 @@ private:
     std::unique_ptr<VideoEncodeDecodeTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

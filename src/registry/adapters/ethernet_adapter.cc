@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 EthernetAdapter::EthernetAdapter() : hal_(std::make_unique<EthernetTesting>()) {}
 EthernetAdapter::~EthernetAdapter() = default;
@@ -35,4 +35,4 @@ std::vector<hal::TestResult> EthernetAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

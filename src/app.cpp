@@ -70,7 +70,7 @@
 
 using namespace acadia::stream;
 
-namespace acadia::client {
+namespace arches::client {
 
 // ---------------------------------------------------------------------------
 // build_adapter_registry — registers all known module adapters.
@@ -239,14 +239,14 @@ bool App::init() {
 
     // 7. Diagnostic socket (T045)
     diag_socket_ = std::make_unique<DiagSocket>(
-        "/run/acadia/client.sock",
+        "/run/arches/client.sock",
         [this](const std::string& /*query*/) -> std::string {
             auto states = spool_->all_run_states();
             std::string r = R"({"connected":)";
             r += stream_->is_connected() ? "true" : "false";
             r += R"(,"spool_bytes":)" + std::to_string(spool_->result_bytes_used());
             r += R"(,"active_runs":)" + std::to_string(states.size());
-            r += R"(,"client_version":")" ACADIA_CLIENT_VERSION "\"";
+            r += R"(,"client_version":")" ARCHES_CLIENT_VERSION "\"";
             r += "}";
             return r;
         });
@@ -352,7 +352,7 @@ void App::send_hello() {
     ClientMessage msg;
     auto* hello = msg.mutable_hello();
     hello->set_board_id(cfg_.client_id);
-    hello->set_client_version(ACADIA_CLIENT_VERSION);
+    hello->set_client_version(ARCHES_CLIENT_VERSION);
 
     // Attach active run states from spool
     for (const auto& rs : spool_->all_run_states()) {
@@ -389,5 +389,5 @@ void App::send_unacked_replay() {
     }
 }
 
-} // namespace acadia::client
+} // namespace arches::client
 

@@ -10,7 +10,7 @@
 
 using namespace acadia::stream;
 
-namespace acadia::client {
+namespace arches::client {
 
 // ---------------------------------------------------------------------------
 // ctor / dtor
@@ -343,4 +343,4 @@ void RunOrchestrator::run_event_based(RunContext& ctx) {
     flush_synthetic(ctx, hal::Status::ABORTED, "cancelled by server", true);
 }
 
-} // namespace acadia::client
+} // namespace arches::client

@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-namespace acadia::client {
+namespace arches::client {
 
 EmmcAdapter::EmmcAdapter() : hal_(std::make_unique<EmmcTesting>()) {}
 EmmcAdapter::~EmmcAdapter() = default;
@@ -30,4 +30,4 @@ std::vector<hal::TestResult> EmmcAdapter::run(int mode,
     return results;
 }
 
-} // namespace acadia::client
+} // namespace arches::client

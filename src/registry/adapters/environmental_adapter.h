@@ -8,7 +8,7 @@
 
 class EnvironmentalTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class EnvironmentalAdapter final : public AdapterBase {
 public:
@@ -22,4 +22,4 @@ private:
     std::unique_ptr<EnvironmentalTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client

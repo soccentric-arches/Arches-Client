@@ -5,7 +5,7 @@
 
 class BatteryTesting;  // forward declaration
 
-namespace acadia::client {
+namespace arches::client {
 
 class BatteryAdapter final : public AdapterBase {
 public:
@@ -18,4 +18,4 @@ private:
     std::unique_ptr<BatteryTesting> hal_;
 };
 
-} // namespace acadia::client
+} // namespace arches::client
