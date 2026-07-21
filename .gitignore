@@ -1,0 +1,72 @@
+# Build output
+/build/
+/cmake-build-*/
+/out/
+
+# CMake and Ninja generated files
+CMakeCache.txt
+CMakeFiles/
+CTestTestfile.cmake
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+build.ninja
+.ninja_deps
+.ninja_log
+
+# Compiled objects, libraries, and executables
+*.o
+*.obj
+*.lo
+*.la
+*.a
+*.so
+*.so.*
+*.dylib
+*.dll
+*.exe
+*.pdb
+*.dSYM/
+
+# Generated protocol sources
+/proto_gen/
+*.pb.cc
+*.pb.h
+*.grpc.pb.cc
+*.grpc.pb.h
+
+# Test and coverage artifacts
+Testing/
+coverage/
+*.gcda
+*.gcno
+*.gcov
+*.profraw
+*.profdata
+
+# Runtime state and logs
+*.log
+*.pid
+*.sock
+/spool/
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+/conf/*.local
+/conf/*.local.*
+/conf/client.conf.override
+
+# IDE and editor files
+.vscode/
+!.vscode/extensions.json
+!.vscode/tasks.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS metadata
+.DS_Store
+Thumbs.db
