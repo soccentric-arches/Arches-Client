@@ -70,3 +70,39 @@ rewrite: own namespace `arches::client`, proto packages deliberately unchanged.
   one. The Makefile `cppcheck`/`lint` targets invoke cppcheck/clang-tidy directly
   against `compile_commands.json` and degrade gracefully when the tools are not
   installed.
+- **Don't sleep a full tick in `run_long_term` after stop.** The original
+  `sleep_until(next_tick)` left a stopped run asleep for up to 1 s before
+  emitting the CANCELLED terminal batch. Poll `ctx->stop` in 50 ms increments
+  (matching the pause-poll cadence) so StopRun is acknowledged within ~50 ms.
+  Caught by `LongTermStopSetsCancelledState`; see `run/RunOrchestrator.cc`.
+- **Do pack the module-specific Result (`hal.modules.<id>.Result{results:[r]}`)
+  into each `TestResultBatch.sample.payload` Any — §5-approved wire change.**
+  `hal_bridge::pack_module_result` builds it via protobuf reflection against the
+  generated descriptor pool (no per-module headers, one generic path for all 35
+  implemented modules); falls back to a bare `hal.common.TestResult` when the
+  module Result descriptor is absent (unknown/proto-only module) so no result is
+  silently dropped. The batch `sample.type_url` is set to match. **Server +
+  PySDK must consume the module-Result wrapper (unpack `hal.modules.<id>.Result`,
+  read `.results`) — not a bare `hal.common.TestResult` anymore.** This is a §5
+  contract change approved by the user; record in the porting note and update
+  Server/PySDK in their own change sets.
+- **Do parse module Config `test_names` generically.** Adapters call
+  `hal_bridge::resolve_test_names(config_bytes, hal_->getAvailableTests())`,
+  which deserializes the `google.protobuf.Any` carrying
+  `hal.modules.<id>.Config`, reads the `repeated string test_names` field via
+  reflection, clamps to what the HAL offers, and falls back to all available when
+  the config names nothing the HAL has. Lives in `hal_bridge/ResultSerializer.cc`.
+- **Do emit real RunState on every terminal/non-terminal batch.**
+  `flush_results`/`flush_synthetic` now take a `RunState` and stamp
+  `batch.state` + upsert the spool run-state: single-shot → COMPLETED (empty
+  HAL → FAILED, HAL exception → FAILED), long-term/event ticks → RUNNING,
+  loop-exit-on-stop → CANCELLED, unknown mode / escaping exception → FAILED.
+  PAUSED is reflected via the spool run-state (surfaced by Hello/StateReport),
+  not by emitting a wire batch (avoids racing the driver thread on
+  batch_seq/stream). `ServerMessage::kRestartRun` is handled in `app.cpp`
+  via `orchestrator_->on_restart()` (stop old, start new if configured).
+- **Don't name `Spool::BatchRow` in tests — `BatchRow` is a free struct at
+  `arches::client` namespace scope (spool/Spool.h:24), not nested in `Spool`.**
+  `std::vector<Spool::BatchRow>` fails to parse and the compiler silently
+  degrades the parameter to `const int&`. Use plain `BatchRow` (with
+  `using namespace arches::client;`).

@@ -85,13 +85,53 @@ and config files were renamed.
 
 ## Order & dependencies across components
 
-This change is **client-only**. It depends on Arches-HAL already exposing:
+This change is **client-only at the proto-package level**. It depends on
+Arches-HAL already exposing:
 - `acu_full_test` static target (all HAL modules + `lib_base`),
 - `hal_protos_shared` shared target (generated protos + gRPC, PUBLIC protobuf+gRPC).
 
-No matching changes are required in Arches-Server, Arches-PySDK, or
-Arches-Dashboard **because no contract changed**. If a sibling ever renames the
-proto packages, that is a §5 change and would ripple to all four — not done here.
+### §5 contract change — module-specific Result payload (APPROVED)
+
+One wire-level change was made with explicit user approval (§5): the
+`TestResultBatch.sample.payload` `google.protobuf.Any` now carries the
+**module-specific** `hal.modules.<module_id>.Result { repeated hal.common.TestResult results = 2; }`
+instead of a bare `hal.common.TestResult`. The batch `sample.type_url` is set
+to `type.googleapis.com/hal.modules.<id>.Result` to match. For unknown /
+proto-only modules with no `.Result` descriptor, the client falls back to the
+bare `hal.common.TestResult` (no result is silently dropped).
+
+**Required sibling updates (separate change sets, tracked here):**
+- **Arches-Server** must unpack `hal.modules.<id>.Result` and read `.results(i)`
+  rather than a bare `hal.common.TestResult`. Today it expects the bare type.
+- **Arches-PySDK** must do the same on the consume side.
+- **Arches-Dashboard**: no change (it reads Server-resolved data, not the raw
+  Any).
+
+The proto packages, `.proto`/`.fbs`/GraphQL schema files, and the HAL API are
+unchanged — only the *contents* the client places in the existing `Any` payload
+field changed. Blast radius is one project (Arches), per §5.
+
+## Proto-feature coverage (added 2026-07-20, client-only)
+
+The client now exercises every proto feature the HAL/Server surface exposes:
+- **`ServerMessage::kRestartRun`** — `app.cpp` dispatches to
+  `RunOrchestrator::on_restart(old, new)` (stop old run, start new if configured).
+- **RunState PAUSED/FAILED/CANCELLED** — `flush_results`/`flush_synthetic` stamp
+  `batch.state` and upsert the spool run-state: single-shot success → COMPLETED,
+  empty HAL / HAL exception → FAILED, long-term/event ticks → RUNNING, loop
+  exit on stop → CANCELLED, unknown mode / escaping exception → FAILED. PAUSED
+  is reflected via the spool run-state (surfaced by Hello/StateReport), not a
+  wire batch, to avoid racing the driver thread.
+- **Module Config `test_names`** — adapters call
+  `hal_bridge::resolve_test_names(config_bytes, available)`, which deserializes
+  the `Any`-wrapped `hal.modules.<id>.Config`, reads `repeated string
+  test_names` via reflection, clamps to what the HAL offers, and falls back to
+  all available when the config names nothing the HAL has.
+- **Module-specific Result packing** — see §5 section above.
+
+16 proto-only modules (no HAL C++) remain SKIPPED via `StubAdapter` — enabling
+them would break the build (no `*_lib.h`) and would be a fake pass, which the
+IV&V stance forbids. They turn on when Arches-HAL gains their C++.
 
 ## Platform-specific considerations (Arches RT element = STM32 co-processor)
 
