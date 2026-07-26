@@ -1,4 +1,4 @@
-# Compiler warning flags for acadia-client targets.
+# Compiler warning flags for arches-client targets.
 # Warnings-as-errors is opt-in so local dev builds don't fail on new warnings,
 # but CI can set -DWARNINGS_AS_ERRORS=ON.
 

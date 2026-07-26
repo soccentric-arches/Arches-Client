@@ -5,7 +5,7 @@
 #include <spdlog/spdlog.h>
 #include <chrono>
 
-using namespace acadia::stream;
+using namespace arches::stream;
 
 namespace arches::client {
 

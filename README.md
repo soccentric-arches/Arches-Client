@@ -9,11 +9,10 @@ co-processor). The client runs on the board under validation and:
    streaming up to Arches-Server, `hal_service.proto` for the SDK/E2E path).
 3. Spools results durably to SQLite and streams them to Arches-Server.
 
-This is the **Arches-native** rewrite of the client. The implementation is wired
-to `../Arches-HAL`; the proto packages (`acadia.stream`, `hal.common`, `hal`,
-`hal.modules.*`) are shared wire contracts with Arches-Server and Arches-PySDK
-and are intentionally **unchanged** — only the client's own C++ namespace was
-renamed to `arches::client`.
+The implementation is wired to `../Arches-HAL`; the proto packages
+(`arches.stream`, `hal.common`, `hal`, `hal.modules.*`) are shared wire
+contracts with Arches-Server and Arches-PySDK. The client's own C++ namespace
+is `arches::client`, a sibling namespace under `arches::`.
 
 ## Architecture
 
@@ -128,8 +127,8 @@ The Docker container mounts the parent `Arches/` directory so both
 |---|---|---|
 | HAL API | HAL ↔ Client | `../Arches-HAL/include`, `lib_base.h` |
 | gRPC `.proto` | Client ↔ Server | `../Arches-HAL/protos` (`client_service`, `hal_service`, modules) |
-| Proto packages | wire | `acadia.stream`, `hal.common`, `hal`, `hal.modules.*` — **unchanged** |
+| Proto packages | wire | `arches.stream`, `hal.common`, `hal`, `hal.modules.*` |
 
-The proto packages keep the `acadia.*` names because they are the shared wire
-contract with Arches-Server and Arches-PySDK. Renaming them would be a §5
-breaking change. Only the client's own C++ namespace is `arches::client`.
+The proto packages use native Arches naming because they are the shared wire
+contract with Arches-Server and Arches-PySDK. Renaming them further would be a
+§5 breaking change. The client's own C++ namespace is `arches::client`.

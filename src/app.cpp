@@ -68,7 +68,7 @@
 // ─── Honest-stub for any unrecognised modules ─────────────────────────────
 #include "registry/adapters/stub_adapter.h"
 
-using namespace acadia::stream;
+using namespace arches::stream;
 
 namespace arches::client {
 
@@ -364,7 +364,7 @@ void App::send_hello() {
     for (const auto& rs : spool_->all_run_states()) {
         auto* ai = hello->add_runs();
         ai->set_run_id(rs.run_id);
-        ai->set_state(static_cast<acadia::stream::RunState>(rs.state));
+        ai->set_state(static_cast<arches::stream::RunState>(rs.state));
         ai->set_last_batch_seq(rs.last_seq);
     }
 

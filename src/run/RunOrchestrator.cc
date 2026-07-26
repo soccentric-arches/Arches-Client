@@ -8,7 +8,7 @@
 #include <chrono>
 #include <stdexcept>
 
-using namespace acadia::stream;
+using namespace arches::stream;
 
 namespace arches::client {
 
@@ -140,7 +140,7 @@ void RunOrchestrator::stop_all() {
 
 void RunOrchestrator::driver_thread(std::shared_ptr<RunContext> ctx) {
     try {
-        // acadia::stream::ExecutionMode values match common.proto
+        // arches::stream::ExecutionMode values match common.proto
         switch (ctx->mode) {
             case 1: run_single_shot(*ctx); break;
             case 2: run_long_term(*ctx);   break;

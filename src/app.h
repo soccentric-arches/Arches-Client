@@ -34,7 +34,7 @@ public:
     void run(std::atomic<bool>& shutdown);
 
 private:
-    void on_server_message(const acadia::stream::ServerMessage& msg);
+    void on_server_message(const arches::stream::ServerMessage& msg);
     void send_hello();
     void send_unacked_replay();
 

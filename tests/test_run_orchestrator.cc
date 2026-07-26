@@ -25,7 +25,7 @@
 namespace {
 
 using namespace arches::client;
-using namespace acadia::stream;
+using namespace arches::stream;
 
 // ─── Minimal Spool (in-memory) ────────────────────────────────────────────────
 

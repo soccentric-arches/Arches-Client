@@ -5,7 +5,7 @@
 **Leaf type:** `<Project>-Client`
 **Status:** REAL — actively built out
 
-The **gRPC IV&V client** for the Arches project (NVIDIA Jetson target, STM32 co-processor) — the "Arches-native rewrite" of the shared Acadia-derived client pattern. Runs on the board under validation and:
+The **gRPC IV&V client** for the Arches project (NVIDIA Jetson target, STM32 co-processor). Runs on the board under validation and:
 
 1. Drives hardware through the **Arches-HAL** C++ API (static + dynamic libraries), one adapter per HAL module.
 2. Speaks the shared gRPC/protobuf wire contracts (`client_service.proto` streaming to `Arches-Server`, `hal_service.proto` for the SDK/E2E path).
@@ -15,7 +15,7 @@ The **gRPC IV&V client** for the Arches project (NVIDIA Jetson target, STM32 co-
 
 **Linking strategy:** the client does **not** generate its own protobuf sources — it links the HAL subproject's pre-built proto library (`add_subdirectory(../Arches-HAL ...)`, links `acu_full_test` static + `hal_protos_shared`), making HAL the single source of generated proto symbols (no ODR risk, no `find_package(gRPC/Protobuf)` in the client root).
 
-**Proto packages are intentionally unchanged** (`acadia.stream`, `hal.common`, `hal`, `hal.modules.*`) — they're a shared wire contract with `Arches-Server`/`Arches-PySDK`; only the client's own C++ namespace was renamed to `arches::client`. Renaming the proto packages would be a breaking change requiring cross-team approval.
+**Proto packages** (`arches.stream`, `hal.common`, `hal`, `hal.modules.*`) are native Arches naming — they're a shared wire contract with `Arches-Server`/`Arches-PySDK`; the client's own C++ namespace is `arches::client`, a sibling namespace under `arches::`. Renaming the proto packages further would be a breaking change requiring cross-team approval.
 
 **Build:** single Makefile entry point — `make build` (configure + ninja, 222 targets), `make test` (ctest filtered to the `arches_client` label — the HAL subproject registers ~36 unbuilt HAL tests that a bare `ctest` would fail on), `make lint` (cppcheck + clang-tidy), `make installer` (CPack .deb/.rpm/.zip), `make doc` (Doxygen), `make run`. Full validation gate: `make build && make test && make lint`.
 

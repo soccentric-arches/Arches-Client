@@ -4,8 +4,8 @@ Master SoCcentric CLAUDE.md applies. This file adds local knowledge only.
 
 Arches-Client is the gRPC IV&V client for the NVIDIA Jetson target. It drives
 hardware via the Arches-HAL C++ API (`../Arches-HAL`) and streams results to
-Arches-Server over the shared gRPC/protobuf contracts. This is the Arches-native
-rewrite: own namespace `arches::client`, proto packages deliberately unchanged.
+Arches-Server over the shared gRPC/protobuf contracts, all under native Arches
+naming: own namespace `arches::client`, proto packages under `arches.*`/`hal.*`.
 
 - Build: `make build` (configures + Ninja; host)
 - Test: `make test` (runs `ctest -L arches_client`)
@@ -36,12 +36,12 @@ rewrite: own namespace `arches::client`, proto packages deliberately unchanged.
   `BUILD_TESTS` in `CMakeCache.txt`; reconfiguring with a different value into a
   stale cache produces confusing results. `rm -rf build/native` before
   reconfiguring.
-- **Keep the proto packages (`acadia.stream`, `hal.common`, `hal`, `hal.modules.*`)
+- **Keep the proto packages (`arches.stream`, `hal.common`, `hal`, `hal.modules.*`)
   exactly as-is.** They are the shared wire contract with Arches-Server and
-  Arches-PySDK. The `namespace acadia { namespace stream { ... } }` forward-decl
-  in `src/stream/StreamClient.h` is part of that contract — keep it. Only the
-  client's own C++ namespace is `arches::client`. Changing proto packages is a §5
-  breaking change requiring approval.
+  Arches-PySDK. The `namespace arches { namespace stream { ... } }` forward-decl
+  in `src/stream/StreamClient.h` is part of that contract — keep it. The
+  client's own C++ namespace is also `arches::client`, a sibling namespace under
+  `arches::`. Changing proto packages is a §5 breaking change requiring approval.
 - **One adapter per HAL module; `AdapterRegistry::invoke()` is the only dispatch
   point.** No `switch(module_id)` anywhere else. Real adapter for HAL-backed
   modules, `StubAdapter` (honest SKIPPED) for proto-only modules, ERROR for
@@ -63,7 +63,7 @@ rewrite: own namespace `arches::client`, proto packages deliberately unchanged.
 - **Don't `find_package(gRPC)` / `find_package(Protobuf)` in the client root
   CMake.** They come transitively from `hal_protos_shared`. Adding local finds
   re-introduces the duplicate-symbol risk.
-- **Don't rename the proto packages or the `acadia::stream` forward-decl.** §5
+- **Don't rename the proto packages or the `arches::stream` forward-decl.** §5
   contract — shared with Server + PySDK.
 - **Don't use `std::tmpnam` in tests.** Use `mkstemp` (see Do).
 - **Don't rely on a `ninja cppcheck` target.** The client CMake does not define

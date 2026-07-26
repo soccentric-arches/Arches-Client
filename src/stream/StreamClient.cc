@@ -10,7 +10,7 @@
 
 namespace arches::client {
 
-using namespace acadia::stream;
+using namespace arches::stream;
 
 StreamClient::StreamClient(StreamClientConfig cfg, ServerMessageCb on_message)
     : cfg_(std::move(cfg)), on_message_(std::move(on_message)) {}

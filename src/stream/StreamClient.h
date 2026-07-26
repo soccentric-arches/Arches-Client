@@ -20,15 +20,15 @@
 
 // Forward declarations for generated proto types.
 // The actual header is included in StreamClient.cc.
-namespace acadia { namespace stream {
+namespace arches { namespace stream {
     class ClientMessage;
     class ServerMessage;
-}}  // namespace acadia::stream
+}}  // namespace arches::stream
 
 namespace arches::client {
 
 // Callback invoked on every incoming ServerMessage.
-using ServerMessageCb = std::function<void(const acadia::stream::ServerMessage&)>;
+using ServerMessageCb = std::function<void(const arches::stream::ServerMessage&)>;
 
 struct StreamClientConfig {
     std::string server_address;
@@ -55,7 +55,7 @@ public:
 
     // Enqueue a message for sending.  Thread-safe.
     // Returns false if the stream is not connected.
-    bool send(acadia::stream::ClientMessage msg);
+    bool send(arches::stream::ClientMessage msg);
 
     bool is_connected() const noexcept;
 
@@ -70,7 +70,7 @@ private:
     std::thread                thread_;
 
     std::mutex                             send_queue_mtx_;
-    std::queue<acadia::stream::ClientMessage> send_queue_;
+    std::queue<arches::stream::ClientMessage> send_queue_;
 };
 
 } // namespace arches::client

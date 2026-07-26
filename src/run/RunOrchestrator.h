@@ -31,7 +31,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace acadia::stream {
+namespace arches::stream {
     class TestResultBatch;
 }
 
@@ -48,7 +48,7 @@ using HalInvokeFn = std::function<
 struct RunContext {
     std::string              run_id;
     std::string              module_id;
-    int                      mode        = 0;  // acadia::stream::ExecutionMode
+    int                      mode        = 0;  // arches::stream::ExecutionMode
     std::vector<uint8_t>     config_blob;      // serialised Any
     std::atomic<bool>        paused{false};
     std::atomic<bool>        stop{false};
@@ -66,7 +66,7 @@ public:
     RunOrchestrator& operator=(const RunOrchestrator&) = delete;
 
     // Handle incoming server commands (called from stream thread).
-    void on_configure(const acadia::stream::ConfigureRun& msg);
+    void on_configure(const arches::stream::ConfigureRun& msg);
     void on_start(const std::string& run_id);
     void on_pause(const std::string& run_id);
     void on_resume(const std::string& run_id);
@@ -99,14 +99,14 @@ private:
     // CANCELLED at end-of-run). `terminal` marks the final batch for the run.
     void flush_results(RunContext& ctx,
                        std::vector<hal::TestResult> results,
-                       acadia::stream::RunState state,
+                       arches::stream::RunState state,
                        bool terminal);
 
     // Synthesize a special-status result (TIMEOUT, ABORTED, ERROR) and flush.
     void flush_synthetic(RunContext& ctx,
                          hal::Status status,
                          const std::string& error_message,
-                         acadia::stream::RunState state,
+                         arches::stream::RunState state,
                          bool terminal);
 
     Spool&          spool_;
@@ -115,7 +115,7 @@ private:
 
     mutable std::mutex mtx_;
     std::unordered_map<std::string, RunEntry> runs_;
-    std::unordered_map<std::string, acadia::stream::ConfigureRun> pending_configs_;
+    std::unordered_map<std::string, arches::stream::ConfigureRun> pending_configs_;
 };
 
 } // namespace arches::client
