@@ -106,3 +106,10 @@ naming: own namespace `arches::client`, proto packages under `arches.*`/`hal.*`.
   `std::vector<Spool::BatchRow>` fails to parse and the compiler silently
   degrades the parameter to `const int&`. Use plain `BatchRow` (with
   `using namespace arches::client;`).
+<!-- BEGIN loop-engine -->
+## Do's and Don'ts (maintained by the Loop Engine)
+
+*Appended by the Loop Engine on loop close; curated by a human when approving a
+loop out of `in-review/`. Nothing outside this fence is engine-writable.*
+
+<!-- END loop-engine -->
