@@ -106,6 +106,21 @@ naming: own namespace `arches::client`, proto packages under `arches.*`/`hal.*`.
   `std::vector<Spool::BatchRow>` fails to parse and the compiler silently
   degrades the parameter to `const int&`. Use plain `BatchRow` (with
   `using namespace arches::client;`).
+## Validation gate — `.claude/validate.sh`
+
+```bash
+./.claude/validate.sh quick   # seconds: sibling-HAL presence, adapter-registry sanity, cppcheck/clang-tidy/clang-format
+./.claude/validate.sh full    # + build + `ctest -L arches_client`
+```
+
+Exit codes follow the fleet contract: `0` pass, `1`-`76` fail, **`77` means a
+check never ran** (missing toolchain) — which is not a pass. Runs automatically
+via the `Stop` hook in `.claude/settings.json`, on demand via `/validate`, and
+as part of any loop the engine executes here.
+
+Human-owned: the Loop Engine runs this script and never edits it. If a check is
+wrong, fix it yourself or raise it in the loop's Lessons Learned.
+
 <!-- BEGIN loop-engine -->
 ## Do's and Don'ts (maintained by the Loop Engine)
 
