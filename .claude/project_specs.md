@@ -1,19 +1,17 @@
 # Arches-Client — specs
 
 Remote: `git@github.com:SiliconCentric/Arches-Client.git`
-Parent project: Arches (target hardware: NVIDIA Jetson, Tegra family, L4T/JetPack OS, with an STM32 real-time co-processor)
-Leaf type: `<Project>-Client`
-Status: REAL — actively built out
+Target: NVIDIA Jetson (Tegra, L4T/JetPack). Namespace `arches::client`; proto packages under `arches.*` / `hal.*`.
 
-## What this is
+The gRPC IV&V client. Drives hardware via the Arches-HAL C++ API and streams results to
+Arches-Server over the shared gRPC/protobuf contracts.
 
-Arches-Client is the gRPC IV&V client for the NVIDIA Jetson target. It drives hardware via the Arches-HAL C++ API (`../Arches-HAL`) and streams results to Arches-Server over the shared gRPC/protobuf contracts, all under native Arches naming: own namespace `arches::client`, proto packages under `arches.*`/`hal.*`.
+## Architecture
 
-## Architecture notes
-
-* Links the HAL subproject at build time rather than regenerating protos — HAL is the single source of generated proto symbols, so there is no ODR/duplicate-symbol risk.
-* One adapter per HAL module; `AdapterRegistry::invoke()` is the only dispatch point. Real adapters for HAL-backed modules, a `StubAdapter` (honest `SKIPPED`) for proto-only modules.
-* The proto packages (`arches.stream`, `hal.common`, `hal`, `hal.modules.*`) are a shared wire contract with Arches-Server and Arches-PySDK — a section-5 breaking change requiring approval to rename.
-* Module results pack into `hal.modules.<id>.Result` via protobuf reflection (`hal_bridge::pack_module_result`), with a bare `hal.common.TestResult` fallback for unknown/proto-only modules — Server and PySDK must consume the wrapper form.
-* Module `Config` `test_names` are parsed generically via `hal_bridge::resolve_test_names`, deserializing the `google.protobuf.Any` payload and clamping to what the HAL offers.
-* Every terminal/non-terminal batch stamps a real `RunState`, upserted into the spool run-state (single-shot → COMPLETED/FAILED, long-term/event ticks → RUNNING, loop-exit-on-stop → CANCELLED, unknown mode/exception → FAILED). PAUSED is reflected via spool state, not a wire batch.
+* **HAL linking** — links the HAL subproject at build time instead of regenerating protos. HAL is the single source of generated proto symbols, so there is no ODR/duplicate-symbol risk.
+* **Adapter registry** — one adapter per HAL module; `AdapterRegistry::invoke()` is the only dispatch point. Real adapters for HAL-backed modules, `StubAdapter` returning an honest `SKIPPED` for proto-only ones.
+* **Wire contract** — `arches.stream`, `hal.common`, `hal`, `hal.modules.*` are shared with Arches-Server and Arches-PySDK. Renaming any of them is a coordinated breaking change.
+* **Result packing** — module results pack into `hal.modules.<id>.Result` via protobuf reflection (`hal_bridge::pack_module_result`), falling back to a bare `hal.common.TestResult` when the module descriptor is absent.
+* **Config parsing** — `hal_bridge::resolve_test_names` deserializes the `google.protobuf.Any` carrying `hal.modules.<id>.Config`, reads `test_names` by reflection, and clamps to the HAL's available tests.
+* **Run state** — every batch carries a real `RunState`, upserted into the spool run-state. PAUSED is reflected in spool state only, never emitted as a wire batch. `ServerMessage::kRestartRun` is handled in `app.cpp` via `orchestrator_->on_restart()`.
+* **Spool** — `BatchRow` is a free struct at `arches::client` namespace scope (`spool/Spool.h`), not nested in `Spool`.
