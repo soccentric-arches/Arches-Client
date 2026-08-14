@@ -1,6 +1,6 @@
 # Arches-Client — specs
 
-Remote: `git@github.com:SiliconCentric/Arches-Client.git`
+Remote: `git@github.com:soccentric-arches/Arches-Client.git`
 Target: NVIDIA Jetson (Tegra, L4T/JetPack). Namespace `arches::client`; proto packages under `arches.*` / `hal.*`.
 
 The gRPC IV&V client. Drives hardware via the Arches-HAL C++ API and streams results to
