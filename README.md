@@ -2,13 +2,25 @@
 
 ## Project Summary
 
-Arches-Client is the embedded C++17 daemon that makes the Arches hardware-validation stack remotely controllable. `src/main.cpp` and `src/app.cpp` assemble the application; `src/config` handles runtime configuration and identity; `src/hal_service` exposes the client gRPC service; and `src/hal_bridge` serializes HAL results for the server and SDK. `src/run/RunOrchestrator` owns test sequencing and lifecycle, while `src/spool/Spool` supports durable local result handling during disconnects. Diagnostic, logging, configuration, and systemd files support embedded Linux deployment.
+Arches-Client is the embedded C++17 daemon that makes the Arches hardware-validation stack remotely controllable.
 
-The registry under `src/registry` contains adapters for module families declared by the HAL protocol, including CPU, memory, GPIO, storage, networking, camera, display, MCU, and safety interfaces. Registry discovery keeps adapter selection separate from orchestration. `conf/client.conf`, its development variant, and the sample file document runtime inputs; CMake, Make, Docker, and `run.sh` provide build and target workflows.
+`src/main.cpp` and `src/app.cpp` assemble the application. `src/config` handles runtime configuration and identity. `src/hal_service` exposes the client gRPC service, and `src/hal_bridge` serializes HAL results for the server and SDK.
 
-Focused C++ tests cover adapter registration, application wiring, result serialization, and orchestration. They exercise important seams but do not prove behavior against real device nodes, permissions, transports, or target timing. Statuses below describe repository evidence, not manual hardware verification.
+`src/run/RunOrchestrator` owns test sequencing and lifecycle. `src/spool/Spool` supports durable local result handling during disconnects. Diagnostic, logging, configuration, and systemd files support embedded Linux deployment.
 
-The implementation depends on the shared HAL protobuf version and on target permissions. Review configuration defaults, service startup ordering, spool recovery, adapter availability, and server compatibility as part of release qualification. Also check clean-install behavior, upgrade behavior, interrupted-run recovery, and log rotation on the target. No manual verification is implied by the source-level status values.
+The registry under `src/registry` contains adapters for module families declared by the HAL protocol, including CPU, memory, GPIO, storage, networking, camera, display, MCU, and safety interfaces.
+
+Registry discovery keeps adapter selection separate from orchestration. `conf/client.conf`, its development variant, and the sample file document runtime inputs. CMake, Make, Docker, and `run.sh` provide build and target workflows.
+
+Focused C++ tests cover adapter registration, application wiring, result serialization, and orchestration.
+
+They exercise important seams but do not prove behavior against real device nodes, permissions, transports, or target timing. Statuses below describe repository evidence, not manual hardware verification.
+
+The implementation depends on the shared HAL protobuf version and on target permissions.
+
+Review configuration defaults, service startup ordering, spool recovery, adapter availability, and server compatibility as part of release qualification. Also check clean-install behavior, upgrade behavior, interrupted-run recovery, and log rotation on the target.
+
+No manual verification is implied by the source-level status values.
 
 ## Features
 
@@ -25,7 +37,7 @@ The implementation depends on the shared HAL protobuf version and on target perm
 | 9 | Diagnostics and logging | Implemented | Unknown | [ ] Manual verification required |
 | 10 | Configuration and systemd deployment | Implemented | Unknown | [ ] Manual verification required |
 
-## Validation
+## Validation Commands
 
 `make build`; `make test`; `make lint`; `make format`. Hardware-facing behavior requires a compatible Arches target.
 
