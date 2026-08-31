@@ -1,5 +1,5 @@
 # Master Makefile for Arches Client (gRPC IV&V client for NVIDIA Jetson)
-# Supports both native and Docker-based (ARM64 cross) builds with Ninja.
+# Docker-based builds: the default (and only) build path is Docker.
 #
 # The client links the Arches-HAL subproject (../Arches-HAL) for the static HAL
 # library (acu_full_test) and the shared generated protos (hal_protos_shared).
@@ -8,12 +8,11 @@
 
 .DEFAULT_GOAL := help
 
-.PHONY: all build configure clean test lint format cppcheck doc installer help
+.PHONY: all build clean test lint format cppcheck doc help
 .PHONY: docker-build docker-configure docker-clean docker-shell docker-install docker-image docker-test
-.PHONY: deploy deploy-a deploy-b run run-a run-b list setup-completion
+.PHONY: deploy deploy-a deploy-b run-a run-b list setup-completion
 
 # Build directories (separate to avoid CMake cache conflicts)
-NATIVE_BUILD_DIR := build/native
 CROSS_BUILD_DIR  := build/cross
 
 # Parallel jobs (override with make JOBS=N)
@@ -49,7 +48,7 @@ SCP := $(SSHPASS) scp -o StrictHostKeyChecking=no
 CLIENT_TEST_LABEL := arches_client
 
 # Default target
-all: build ## Alias for build (default)
+all: build ## Docker-based default build
 
 # Deploy to remote target: $(1)=IP address
 define deploy_remote
@@ -75,68 +74,18 @@ define run_remote
 	fi
 endef
 
-define run_local
-	@APP="$(word 2, $(MAKECMDGOALS))"; \
-	ARGS="$(wordlist 3, $(words $(MAKECMDGOALS)), $(MAKECMDGOALS))"; \
-	if [ -z "$$APP" ]; then \
-		echo "Running all test applications locally..."; \
-		for name in $$(ls $(NATIVE_BUILD_DIR)/bin/); do \
-			echo "--- Running $$name ---"; \
-			$(if $(V),echo "LD_LIBRARY_PATH=$(NATIVE_BUILD_DIR)/lib $(NATIVE_BUILD_DIR)/bin/$$name";) \
-			LD_LIBRARY_PATH=$(NATIVE_BUILD_DIR)/lib $(NATIVE_BUILD_DIR)/bin/$$name || true; \
-		done; \
-	else \
-		echo "Running $$APP locally with args: $$ARGS"; \
-		$(if $(V),echo "LD_LIBRARY_PATH=$(NATIVE_BUILD_DIR)/lib $(NATIVE_BUILD_DIR)/bin/$$APP $$ARGS";) \
-		LD_LIBRARY_PATH=$(NATIVE_BUILD_DIR)/lib $(NATIVE_BUILD_DIR)/bin/$$APP $$ARGS; \
-	fi
-endef
-
 # =============================================================================
-# Native builds (host architecture)
+# Build & test (Docker — the default build path)
 # =============================================================================
 
-configure: ## Configure the project with CMake/Ninja
-	@echo "Configuring project with Ninja..."
-	mkdir -p $(NATIVE_BUILD_DIR)
-	cd $(NATIVE_BUILD_DIR) && cmake -GNinja -DBUILD_TESTS=ON $(CURDIR)
-
-build: configure ## Build the project (configures if needed)
-	@echo "Building project with Ninja..."
-	cd $(NATIVE_BUILD_DIR) && ninja -j$(JOBS)
-
-test: build ## Run Arches-Client tests (ctest -L arches_client)
-	@echo "Running Arches-Client tests (label=$(CLIENT_TEST_LABEL))..."
-	cd $(NATIVE_BUILD_DIR) && ctest -L $(CLIENT_TEST_LABEL) --output-on-failure
-
-run: build ## Run test app locally (usage: make run [name] [args...], no args = run all)
-	$(call run_local)
+build: docker-build ## Build the project in Docker (alias for docker-build)
+test: docker-test ## Run tests in Docker (ARM64 via QEMU)
 
 # =============================================================================
-# Lint & installer (per §12 — Makefile is the single entry point)
+# Lint (run inside the Docker build container)
 # =============================================================================
 
-# Static analysis: cppcheck + clang-tidy, both driven from compile_commands.json
-# (exported by CMAKE_EXPORT_COMPILE_COMMANDS in the root CMakeLists). Each tool
-# is best-effort: if it is not installed, we report and continue rather than fail
-# the §9 validation gate, so `make lint` is an honest pass where the toolchain is
-# absent. When a tool IS present and reports errors, this target exits nonzero.
-lint: cppcheck ## Static analysis (cppcheck + clang-tidy, best-effort)
-	@echo "Running clang-tidy on Arches-Client sources (best-effort)..."
-	@if command -v clang-tidy >/dev/null 2>&1; then \
-		if [ -f $(NATIVE_BUILD_DIR)/compile_commands.json ]; then \
-			clang-tidy -p $(NATIVE_BUILD_DIR) $$(find $(CURDIR)/src -name '*.cc' -o -name '*.cpp'); \
-		else \
-			echo "  compile_commands.json missing — run 'make configure' first."; \
-		fi; \
-	else \
-		echo "  clang-tidy not installed; skipping (cppcheck result above stands)."; \
-	fi
-
-# Package the client via CPack (.deb / .rpm / .ipk for Yocto opkg per §12).
-installer: build ## Package via CPack (.deb/.rpm/.ipk)
-	@echo "Packaging Arches-Client via CPack..."
-	cd $(NATIVE_BUILD_DIR) && cpack -G DEB; cpack -G RPM; cpack -G ZIP
+lint: cppcheck ## Alias for cppcheck (dockerized below)
 
 # =============================================================================
 # Common for native and Cross
@@ -147,8 +96,6 @@ clean: ## Remove build directory
 	rm -rf build
 
 list: ## List available test applications
-	@echo "Native ($(NATIVE_BUILD_DIR)):"
-	@ls -1 $(NATIVE_BUILD_DIR)/bin/ 2>/dev/null | sed 's/^/    /' || echo "    (none - run 'make build' first)"
 	@echo "Cross ($(CROSS_BUILD_DIR)):"
 	@ls -1 $(CROSS_BUILD_DIR)/bin/ 2>/dev/null | sed 's/^/    /' || echo "    (none - run 'make docker-build' first)"
 
@@ -217,31 +164,20 @@ run-b: deploy-b ## Run test app on $(IP_B) (usage: make run-b [name] [args...], 
 	$(call run_remote,$(IP_B))
 
 # =============================================================================
-# Code quality & Docs
+# Code quality & Docs (run inside the Docker build container)
 # =============================================================================
 
-format: configure ## Format code with clang-format
-	@echo "Formatting code..."
-	cd $(NATIVE_BUILD_DIR) && ninja format
-	@echo "Formatting CMake files..."
-	find . -name CMakeLists.txt -not -path './build/*' | xargs cmake-format -i
+format: docker-image ## Format code with clang-format (in Docker)
+	@echo "Running clang-format in Docker..."
+	$(DOCKER_RUN) "cd $(DOCKER_CROSS_BUILD_DIR) && ninja format"
 
-cppcheck: configure ## Run static analysis with cppcheck
-	@echo "Running cppcheck static analysis (best-effort)..."
-	@if command -v cppcheck >/dev/null 2>&1; then \
-		if [ -f $(NATIVE_BUILD_DIR)/compile_commands.json ]; then \
-			cppcheck --quiet --enable=warning,style --inline-suppr \
-				--project=$(NATIVE_BUILD_DIR)/compile_commands.json || true; \
-		else \
-			echo "  compile_commands.json missing — run 'make configure' first."; \
-		fi; \
-	else \
-		echo "  cppcheck not installed; skipping (install cppcheck to enable)."; \
-	fi
+cppcheck: docker-image ## Run static analysis with cppcheck (in Docker)
+	@echo "Running cppcheck in Docker..."
+	$(DOCKER_RUN) "cd $(DOCKER_CROSS_BUILD_DIR) && ninja cppcheck"
 
-doc: configure ## Generate Doxygen documentation
-	@echo "Generating documentation..."
-	cd $(NATIVE_BUILD_DIR) && ninja doc_doxygen
+doc: docker-image ## Generate Doxygen documentation (in Docker)
+	@echo "Generating documentation in Docker..."
+	$(DOCKER_RUN) "cd $(DOCKER_CROSS_BUILD_DIR) && ninja doc_doxygen"
 
 # =============================================================================
 # Misc
