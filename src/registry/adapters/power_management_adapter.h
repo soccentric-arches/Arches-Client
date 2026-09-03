@@ -6,19 +6,19 @@
 #include <memory>
 #include <vector>
 
-class PowerManagementTesting;  // forward declaration
+class PowerManagementTesting; // forward declaration
 
 namespace arches::client {
 
 class PowerManagementAdapter final : public AdapterBase {
-public:
+    public:
     PowerManagementAdapter();
     ~PowerManagementAdapter() override;
 
     std::string module_id() const override { return "power_management"; }
-    std::vector<hal::TestResult> run(int mode,
-                                      const std::vector<uint8_t>& config_bytes) override;
-private:
+    std::vector<hal::TestResult> run(int mode, const std::vector<uint8_t>& config_bytes) override;
+
+    private:
     std::unique_ptr<PowerManagementTesting> hal_;
 };
 

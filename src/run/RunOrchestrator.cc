@@ -1,7 +1,7 @@
 #include "run/RunOrchestrator.h"
 
-#include "hal_bridge/ResultSerializer.h"
 #include "client_service.pb.h"
+#include "hal_bridge/ResultSerializer.h"
 
 #include <spdlog/spdlog.h>
 
@@ -16,14 +16,10 @@ namespace arches::client {
 // ctor / dtor
 // ---------------------------------------------------------------------------
 
-RunOrchestrator::RunOrchestrator(Spool& spool,
-                                   StreamClient& stream,
-                                   HalInvokeFn hal_fn)
+RunOrchestrator::RunOrchestrator(Spool& spool, StreamClient& stream, HalInvokeFn hal_fn)
     : spool_(spool), stream_(stream), hal_fn_(std::move(hal_fn)) {}
 
-RunOrchestrator::~RunOrchestrator() {
-    stop_all();
-}
+RunOrchestrator::~RunOrchestrator() { stop_all(); }
 
 // ---------------------------------------------------------------------------
 // Server command handlers
@@ -31,8 +27,8 @@ RunOrchestrator::~RunOrchestrator() {
 
 void RunOrchestrator::on_configure(const ConfigureRun& msg) {
     const std::string& run_id = msg.run_id();
-    spdlog::info("orchestrator: ConfigureRun run_id={} module={} mode={}",
-                 run_id, msg.module_id(), static_cast<int>(msg.mode()));
+    spdlog::info("orchestrator: ConfigureRun run_id={} module={} mode={}", run_id, msg.module_id(),
+                 static_cast<int>(msg.mode()));
 
     std::lock_guard<std::mutex> lk(mtx_);
     pending_configs_[run_id] = msg;
@@ -55,23 +51,22 @@ void RunOrchestrator::on_start(const std::string& run_id) {
     const ConfigureRun& cfg = it->second;
 
     auto ctx = std::make_shared<RunContext>();
-    ctx->run_id    = run_id;
+    ctx->run_id = run_id;
     ctx->module_id = cfg.module_id();
-    ctx->mode      = static_cast<int>(cfg.mode());
-    ctx->type_url  = ""; // set per-module when known
+    ctx->mode = static_cast<int>(cfg.mode());
+    ctx->type_url = ""; // set per-module when known
 
     // Serialize module_config Any bytes for HAL invocation.
     ctx->config_blob.resize(cfg.module_config().ByteSizeLong());
-    cfg.module_config().SerializeToArray(
-        ctx->config_blob.data(),
-        static_cast<int>(ctx->config_blob.size()));
+    cfg.module_config().SerializeToArray(ctx->config_blob.data(),
+                                         static_cast<int>(ctx->config_blob.size()));
 
     // Persist run state to spool.
     spool_.upsert_run_state(run_id, static_cast<int>(RunState::RUNNING), 0);
 
     RunEntry entry;
-    entry.ctx    = ctx;
-    entry.thread = std::thread([this, c = ctx]{ driver_thread(c); });
+    entry.ctx = ctx;
+    entry.thread = std::thread([this, c = ctx] { driver_thread(c); });
     runs_[run_id] = std::move(entry);
     pending_configs_.erase(it);
 
@@ -86,7 +81,7 @@ void RunOrchestrator::on_pause(const std::string& run_id) {
         // it on the wire (the driver loop sleeps while paused, so the next batch
         // will not be emitted until resume).
         spool_.upsert_run_state(run_id, static_cast<int>(RunState::PAUSED),
-                                 it->second.ctx->batch_seq);
+                                it->second.ctx->batch_seq);
     }
 }
 
@@ -95,7 +90,7 @@ void RunOrchestrator::on_resume(const std::string& run_id) {
     if (auto it = runs_.find(run_id); it != runs_.end()) {
         it->second.ctx->paused.store(false);
         spool_.upsert_run_state(run_id, static_cast<int>(RunState::RUNNING),
-                                 it->second.ctx->batch_seq);
+                                it->second.ctx->batch_seq);
     }
 }
 
@@ -110,8 +105,7 @@ void RunOrchestrator::on_stop(const std::string& run_id) {
     spool_.delete_run_state(run_id);
 }
 
-void RunOrchestrator::on_restart(const std::string& old_run_id,
-                                  const std::string& new_run_id) {
+void RunOrchestrator::on_restart(const std::string& old_run_id, const std::string& new_run_id) {
     spdlog::info("orchestrator: restart old={} new={}", old_run_id, new_run_id);
     // Stop the old run first (detaches its driver thread; it finishes naturally).
     on_stop(old_run_id);
@@ -129,7 +123,8 @@ void RunOrchestrator::stop_all() {
     std::unique_lock<std::mutex> lk(mtx_);
     for (auto& [id, entry] : runs_) {
         entry.ctx->stop.store(true);
-        if (entry.thread.joinable()) entry.thread.join();
+        if (entry.thread.joinable())
+            entry.thread.join();
     }
     runs_.clear();
 }
@@ -142,24 +137,29 @@ void RunOrchestrator::driver_thread(std::shared_ptr<RunContext> ctx) {
     try {
         // arches::stream::ExecutionMode values match common.proto
         switch (ctx->mode) {
-            case 1: run_single_shot(*ctx); break;
-            case 2: run_long_term(*ctx);   break;
-            case 3: run_monitoring(*ctx);  break;
-            case 4: run_event_based(*ctx); break;
-            default:
-                spdlog::error("orchestrator: unknown mode {} for run_id={}",
-                              ctx->mode, ctx->run_id);
-                // Unknown mode is a hard failure — emit a FAILED terminal batch.
-                flush_synthetic(*ctx, hal::Status::ERROR,
-                                "unknown execution mode: " + std::to_string(ctx->mode),
-                                RunState::FAILED, true);
+        case 1:
+            run_single_shot(*ctx);
+            break;
+        case 2:
+            run_long_term(*ctx);
+            break;
+        case 3:
+            run_monitoring(*ctx);
+            break;
+        case 4:
+            run_event_based(*ctx);
+            break;
+        default:
+            spdlog::error("orchestrator: unknown mode {} for run_id={}", ctx->mode, ctx->run_id);
+            // Unknown mode is a hard failure — emit a FAILED terminal batch.
+            flush_synthetic(*ctx, hal::Status::ERROR,
+                            "unknown execution mode: " + std::to_string(ctx->mode),
+                            RunState::FAILED, true);
         }
     } catch (const std::exception& e) {
-        spdlog::error("orchestrator: run_id={} driver exception: {}",
-                      ctx->run_id, e.what());
+        spdlog::error("orchestrator: run_id={} driver exception: {}", ctx->run_id, e.what());
         // An exception escaping the mode handler means the run failed outright.
-        flush_synthetic(*ctx, hal::Status::ERROR,
-                        std::string("driver exception: ") + e.what(),
+        flush_synthetic(*ctx, hal::Status::ERROR, std::string("driver exception: ") + e.what(),
                         RunState::FAILED, true);
     }
     spdlog::info("orchestrator: run_id={} driver finished", ctx->run_id);
@@ -169,16 +169,14 @@ void RunOrchestrator::driver_thread(std::shared_ptr<RunContext> ctx) {
 // Flush results — stamp sequence + timestamp, serialize, spool, stream
 // ---------------------------------------------------------------------------
 
-void RunOrchestrator::flush_results(RunContext& ctx,
-                                     std::vector<hal::TestResult> results,
-                                     RunState state,
-                                     bool terminal) {
+void RunOrchestrator::flush_results(RunContext& ctx, std::vector<hal::TestResult> results,
+                                    RunState state, bool terminal) {
     using clock = std::chrono::system_clock;
 
     // Stamp sequence and timestamp on every result (spec: runner is the only
     // place that sets these).
     for (auto& r : results) {
-        r.sequence  = ctx.next_sequence++;
+        r.sequence = ctx.next_sequence++;
         r.timestamp = clock::now();
     }
 
@@ -200,8 +198,7 @@ void RunOrchestrator::flush_results(RunContext& ctx,
         // Pack the module-specific Result (hal.modules.<module>.Result{results:[r]})
         // into the Any payload — §5-approved wire contract. Fall back to a bare
         // hal.common.TestResult when the module Result descriptor is absent.
-        if (!hal_bridge::pack_module_result(ctx.module_id, {r},
-                                              sample->mutable_payload())) {
+        if (!hal_bridge::pack_module_result(ctx.module_id, {r}, sample->mutable_payload())) {
             hal::common::TestResult proto_result = hal_bridge::to_proto(r);
             sample->mutable_payload()->PackFrom(proto_result);
             sample->set_type_url("type.googleapis.com/hal.common.TestResult");
@@ -216,8 +213,7 @@ void RunOrchestrator::flush_results(RunContext& ctx,
 
     // Backpressure: block if spool is full (never silently drop).
     while (spool_.result_spool_full() && !ctx.stop.load()) {
-        spdlog::warn("orchestrator: spool full — applying backpressure for run_id={}",
-                     ctx.run_id);
+        spdlog::warn("orchestrator: spool full — applying backpressure for run_id={}", ctx.run_id);
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
 
@@ -229,23 +225,29 @@ void RunOrchestrator::flush_results(RunContext& ctx,
     stream_.send(std::move(msg));
 }
 
-void RunOrchestrator::flush_synthetic(RunContext& ctx,
-                                       hal::Status status,
-                                       const std::string& error_message,
-                                       RunState state,
-                                       bool terminal) {
+void RunOrchestrator::flush_synthetic(RunContext& ctx, hal::Status status,
+                                      const std::string& error_message, RunState state,
+                                      bool terminal) {
     hal::TestResult r;
-    r.module_id           = ctx.module_id;
-    r.test_id             = ctx.module_id;
-    r.name                = ctx.module_id;
-    r.output.status       = status;
+    r.module_id = ctx.module_id;
+    r.test_id = ctx.module_id;
+    r.name = ctx.module_id;
+    r.output.status = status;
     r.output.error_message = error_message;
     using sev = hal::Severity;
     switch (status) {
-        case hal::Status::TIMEOUT: r.output.severity = sev::ERROR;    break;
-        case hal::Status::ABORTED: r.output.severity = sev::WARNING;  break;
-        case hal::Status::ERROR:   r.output.severity = sev::ERROR;    break;
-        default:                   r.output.severity = sev::INFO;     break;
+    case hal::Status::TIMEOUT:
+        r.output.severity = sev::ERROR;
+        break;
+    case hal::Status::ABORTED:
+        r.output.severity = sev::WARNING;
+        break;
+    case hal::Status::ERROR:
+        r.output.severity = sev::ERROR;
+        break;
+    default:
+        r.output.severity = sev::INFO;
+        break;
     }
     flush_results(ctx, {std::move(r)}, state, terminal);
 }
@@ -255,25 +257,22 @@ void RunOrchestrator::flush_synthetic(RunContext& ctx,
 // ---------------------------------------------------------------------------
 
 void RunOrchestrator::run_single_shot(RunContext& ctx) {
-    spdlog::info("orchestrator: single-shot run_id={} module={}",
-                 ctx.run_id, ctx.module_id);
+    spdlog::info("orchestrator: single-shot run_id={} module={}", ctx.run_id, ctx.module_id);
 
     // SINGLE_SHOT: sequence = 0, timestamp = now() after HAL returns.
     try {
         auto results = hal_fn_(ctx.module_id, ctx.mode, ctx.config_blob);
         if (results.empty()) {
             // No results from HAL = the run failed to produce a verdict.
-            flush_synthetic(ctx, hal::Status::ERROR,
-                            "HAL returned empty results for single-shot",
+            flush_synthetic(ctx, hal::Status::ERROR, "HAL returned empty results for single-shot",
                             RunState::FAILED, true);
         } else {
             flush_results(ctx, std::move(results), RunState::COMPLETED, true);
         }
     } catch (const std::exception& e) {
-        spdlog::error("orchestrator: single-shot HAL exception run_id={}: {}",
-                      ctx.run_id, e.what());
-        flush_synthetic(ctx, hal::Status::ERROR,
-                        std::string("HAL exception: ") + e.what(),
+        spdlog::error("orchestrator: single-shot HAL exception run_id={}: {}", ctx.run_id,
+                      e.what());
+        flush_synthetic(ctx, hal::Status::ERROR, std::string("HAL exception: ") + e.what(),
                         RunState::FAILED, true);
     }
 }
@@ -283,8 +282,7 @@ void RunOrchestrator::run_single_shot(RunContext& ctx) {
 // ---------------------------------------------------------------------------
 
 void RunOrchestrator::run_long_term(RunContext& ctx) {
-    spdlog::info("orchestrator: long-term run_id={} module={}",
-                 ctx.run_id, ctx.module_id);
+    spdlog::info("orchestrator: long-term run_id={} module={}", ctx.run_id, ctx.module_id);
 
     using clock = std::chrono::steady_clock;
     auto next_tick = clock::now() + std::chrono::seconds(1);
@@ -299,34 +297,31 @@ void RunOrchestrator::run_long_term(RunContext& ctx) {
         while (ctx.paused.load() && !ctx.stop.load())
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-        if (ctx.stop.load()) break;
+        if (ctx.stop.load())
+            break;
 
         try {
             auto results = hal_fn_(ctx.module_id, ctx.mode, ctx.config_blob);
             flush_results(ctx, std::move(results), RunState::RUNNING, false);
         } catch (const std::exception& e) {
-            spdlog::error("orchestrator: long-term HAL exception run_id={}: {}",
-                          ctx.run_id, e.what());
+            spdlog::error("orchestrator: long-term HAL exception run_id={}: {}", ctx.run_id,
+                          e.what());
             // Non-fatal: the run continues. State stays RUNNING.
-            flush_synthetic(ctx, hal::Status::ERROR,
-                            std::string("HAL exception: ") + e.what(),
+            flush_synthetic(ctx, hal::Status::ERROR, std::string("HAL exception: ") + e.what(),
                             RunState::RUNNING, false);
         }
 
         // Sleep until next 1 Hz tick, but poll stop in 50ms increments so a
         // server StopRun is acknowledged promptly (within ~50ms) rather than
         // up to a full tick later. Matches the pause-poll cadence above.
-        for (int waited_ms = 0;
-             !ctx.stop.load() && waited_ms < 1000;
-             waited_ms += 50)
+        for (int waited_ms = 0; !ctx.stop.load() && waited_ms < 1000; waited_ms += 50)
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
         next_tick += std::chrono::seconds(1);
     }
 
     // Loop only exits when ctx->stop is set (server StopRun or shutdown) →
     // the run is cancelled, not completed.
-    flush_synthetic(ctx, hal::Status::ABORTED, "cancelled by server",
-                    RunState::CANCELLED, true);
+    flush_synthetic(ctx, hal::Status::ABORTED, "cancelled by server", RunState::CANCELLED, true);
 }
 
 // ---------------------------------------------------------------------------
@@ -334,8 +329,7 @@ void RunOrchestrator::run_long_term(RunContext& ctx) {
 // ---------------------------------------------------------------------------
 
 void RunOrchestrator::run_monitoring(RunContext& ctx) {
-    spdlog::info("orchestrator: monitoring run_id={} module={}",
-                 ctx.run_id, ctx.module_id);
+    spdlog::info("orchestrator: monitoring run_id={} module={}", ctx.run_id, ctx.module_id);
     // Monitoring mode is identical to long-term from the runner's perspective;
     // the HAL adapter populates output.monitoring for MONITORING mode results.
     run_long_term(ctx);
@@ -346,8 +340,7 @@ void RunOrchestrator::run_monitoring(RunContext& ctx) {
 // ---------------------------------------------------------------------------
 
 void RunOrchestrator::run_event_based(RunContext& ctx) {
-    spdlog::info("orchestrator: event-based run_id={} module={}",
-                 ctx.run_id, ctx.module_id);
+    spdlog::info("orchestrator: event-based run_id={} module={}", ctx.run_id, ctx.module_id);
 
     using clock = std::chrono::steady_clock;
     auto next_keepalive = clock::now() + std::chrono::seconds(1);
@@ -356,7 +349,8 @@ void RunOrchestrator::run_event_based(RunContext& ctx) {
         while (ctx.paused.load() && !ctx.stop.load())
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-        if (ctx.stop.load()) break;
+        if (ctx.stop.load())
+            break;
 
         try {
             // HAL returns non-empty results only when the condition fires.
@@ -372,10 +366,9 @@ void RunOrchestrator::run_event_based(RunContext& ctx) {
                 next_keepalive = now + std::chrono::seconds(1);
             }
         } catch (const std::exception& e) {
-            spdlog::error("orchestrator: event-based HAL exception run_id={}: {}",
-                          ctx.run_id, e.what());
-            flush_synthetic(ctx, hal::Status::ERROR,
-                            std::string("HAL exception: ") + e.what(),
+            spdlog::error("orchestrator: event-based HAL exception run_id={}: {}", ctx.run_id,
+                          e.what());
+            flush_synthetic(ctx, hal::Status::ERROR, std::string("HAL exception: ") + e.what(),
                             RunState::RUNNING, false);
         }
 
@@ -383,8 +376,7 @@ void RunOrchestrator::run_event_based(RunContext& ctx) {
     }
 
     // Loop only exits on ctx->stop (server StopRun / shutdown) → cancelled.
-    flush_synthetic(ctx, hal::Status::ABORTED, "cancelled by server",
-                    RunState::CANCELLED, true);
+    flush_synthetic(ctx, hal::Status::ABORTED, "cancelled by server", RunState::CANCELLED, true);
 }
 
 } // namespace arches::client

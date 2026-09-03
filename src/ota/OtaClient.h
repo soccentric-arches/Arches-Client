@@ -5,16 +5,15 @@
 // The server sends the OTA image URL via a REST call to the target's
 // swupdate socket.  This module wraps that invocation.
 
-#include <string>
 #include <functional>
+#include <string>
 
 namespace arches::client {
 
-using OtaStatusCb = std::function<void(const std::string& status,
-                                        const std::string& message)>;
+using OtaStatusCb = std::function<void(const std::string& status, const std::string& message)>;
 
 class OtaClient {
-public:
+    public:
     explicit OtaClient(OtaStatusCb cb);
 
     // Trigger a swupdate from a local or remote image URL.
@@ -25,7 +24,7 @@ public:
     // Request a rollback to the inactive slot.
     bool rollback();
 
-private:
+    private:
     OtaStatusCb cb_;
 };
 

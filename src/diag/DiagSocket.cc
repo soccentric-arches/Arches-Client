@@ -5,18 +5,16 @@
 #include <cerrno>
 #include <cstring>
 #include <stdexcept>
-#include <unistd.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <unistd.h>
 
 namespace arches::client {
 
 DiagSocket::DiagSocket(std::string socket_path, DiagQueryFn query_fn)
     : path_(std::move(socket_path)), query_fn_(std::move(query_fn)) {}
 
-DiagSocket::~DiagSocket() {
-    stop();
-}
+DiagSocket::~DiagSocket() { stop(); }
 
 void DiagSocket::start() {
     // Remove stale socket file
@@ -37,7 +35,7 @@ void DiagSocket::start() {
         throw std::runtime_error(std::string("diag: listen(): ") + strerror(errno));
 
     running_.store(true);
-    thread_ = std::thread([this]{ accept_loop(); });
+    thread_ = std::thread([this] { accept_loop(); });
     spdlog::info("diag: listening on {}", path_);
 }
 
@@ -48,7 +46,8 @@ void DiagSocket::stop() {
         ::close(server_fd_);
         server_fd_ = -1;
     }
-    if (thread_.joinable()) thread_.join();
+    if (thread_.joinable())
+        thread_.join();
     ::unlink(path_.c_str());
 }
 
@@ -67,7 +66,8 @@ void DiagSocket::accept_loop() {
         if (n > 0) {
             query.assign(buf, static_cast<size_t>(n));
             // Trim newline
-            if (!query.empty() && query.back() == '\n') query.pop_back();
+            if (!query.empty() && query.back() == '\n')
+                query.pop_back();
         }
 
         std::string response;

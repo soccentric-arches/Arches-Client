@@ -50,8 +50,8 @@ Result<std::string> load_or_create_client_id(const std::string& path) {
     std::filesystem::path p(path);
     std::filesystem::create_directories(p.parent_path(), ec);
     if (ec) {
-        return Result<std::string>::err(
-            "cannot create directory " + p.parent_path().string() + ": " + ec.message());
+        return Result<std::string>::err("cannot create directory " + p.parent_path().string() +
+                                        ": " + ec.message());
     }
 
     // Write atomically via a temp file then rename
@@ -65,7 +65,8 @@ Result<std::string> load_or_create_client_id(const std::string& path) {
     }
     std::filesystem::rename(tmp_path, path, ec);
     if (ec) {
-        return Result<std::string>::err("cannot rename " + tmp_path + " -> " + path + ": " + ec.message());
+        return Result<std::string>::err("cannot rename " + tmp_path + " -> " + path + ": " +
+                                        ec.message());
     }
 
     spdlog::info("generated new client_id={}", *uuid);

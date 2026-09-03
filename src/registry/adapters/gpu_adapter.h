@@ -6,19 +6,19 @@
 #include <memory>
 #include <vector>
 
-class GpuTesting;  // forward declaration
+class GpuTesting; // forward declaration
 
 namespace arches::client {
 
 class GpuAdapter final : public AdapterBase {
-public:
+    public:
     GpuAdapter();
     ~GpuAdapter() override;
 
     std::string module_id() const override { return "gpu"; }
-    std::vector<hal::TestResult> run(int mode,
-                                      const std::vector<uint8_t>& config_bytes) override;
-private:
+    std::vector<hal::TestResult> run(int mode, const std::vector<uint8_t>& config_bytes) override;
+
+    private:
     std::unique_ptr<GpuTesting> hal_;
 };
 

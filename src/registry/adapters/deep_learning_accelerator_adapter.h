@@ -1,24 +1,25 @@
 #pragma once
-// registry/adapters/deep_learning_accelerator_adapter.h — adapter for the "deep_learning_accelerator" HAL module.
-// Auto-generated pattern; see cpu_adapter for authoritative comments.
+// registry/adapters/deep_learning_accelerator_adapter.h — adapter for the
+// "deep_learning_accelerator" HAL module. Auto-generated pattern; see cpu_adapter for authoritative
+// comments.
 
 #include "registry/AdapterBase.h"
 #include <memory>
 #include <vector>
 
-class DeepLearningAcceleratorTesting;  // forward declaration
+class DeepLearningAcceleratorTesting; // forward declaration
 
 namespace arches::client {
 
 class DeepLearningAcceleratorAdapter final : public AdapterBase {
-public:
+    public:
     DeepLearningAcceleratorAdapter();
     ~DeepLearningAcceleratorAdapter() override;
 
     std::string module_id() const override { return "deep_learning_accelerator"; }
-    std::vector<hal::TestResult> run(int mode,
-                                      const std::vector<uint8_t>& config_bytes) override;
-private:
+    std::vector<hal::TestResult> run(int mode, const std::vector<uint8_t>& config_bytes) override;
+
+    private:
     std::unique_ptr<DeepLearningAcceleratorTesting> hal_;
 };
 

@@ -11,12 +11,12 @@ namespace arches::client::config {
 struct ClientConfig {
     // gRPC server (outbound — connects to Arches-Server)
     std::string server_address;
-    uint16_t    server_port{50051};
+    uint16_t server_port{50051};
 
     // HalService listener (inbound — PySDK connects here; no DB writes)
     // Default port 50052; set hal_service_bind = "127.0.0.1" to restrict access.
     std::string hal_service_bind{"0.0.0.0"};
-    uint16_t    hal_service_port{50052};
+    uint16_t hal_service_port{50052};
 
     // Identity — loaded or generated at startup; persisted separately.
     // client_id_path is the file where the UUID is stored; override in tests.
@@ -25,8 +25,8 @@ struct ClientConfig {
 
     // Spool
     std::string spool_path{"/var/lib/arches/spool/spool.db"};
-    uint64_t    result_spool_cap_bytes{2ULL * 1024 * 1024 * 1024};
-    uint64_t    log_spool_cap_bytes{500ULL * 1024 * 1024};
+    uint64_t result_spool_cap_bytes{2ULL * 1024 * 1024 * 1024};
+    uint64_t log_spool_cap_bytes{500ULL * 1024 * 1024};
 
     // Extra log paths to tail
     std::vector<std::string> log_paths;

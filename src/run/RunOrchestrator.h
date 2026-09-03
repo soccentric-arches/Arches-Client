@@ -14,9 +14,9 @@
 //  - HalInvokeFn returns std::vector<hal::TestResult>; adapters set all
 //    content fields; runner stamps sequence and timestamp.
 
+#include "client_service.pb.h"
 #include "spool/Spool.h"
 #include "stream/StreamClient.h"
-#include "client_service.pb.h"
 
 // lib_base.h brings in hal::TestResult, hal::Status, etc.
 #include "lib_base.h"
@@ -32,7 +32,7 @@
 #include <vector>
 
 namespace arches::stream {
-    class TestResultBatch;
+class TestResultBatch;
 }
 
 namespace arches::client {
@@ -40,29 +40,27 @@ namespace arches::client {
 // HAL invocation callback.
 // Returns one or more TestResult objects per call (one call == one tick).
 // Implementations MUST NOT set sequence or timestamp; the runner stamps them.
-using HalInvokeFn = std::function<
-    std::vector<hal::TestResult>(const std::string& module_id,
-                                  int mode,
-                                  const std::vector<uint8_t>& config_bytes)>;
+using HalInvokeFn = std::function<std::vector<hal::TestResult>(
+    const std::string& module_id, int mode, const std::vector<uint8_t>& config_bytes)>;
 
 struct RunContext {
-    std::string              run_id;
-    std::string              module_id;
-    int                      mode        = 0;  // arches::stream::ExecutionMode
-    std::vector<uint8_t>     config_blob;      // serialised Any
-    std::atomic<bool>        paused{false};
-    std::atomic<bool>        stop{false};
-    int64_t                  batch_seq   = 0;
-    std::string              type_url;         // result type URL
-    uint64_t                 next_sequence = 0; // monotonic per-run counter (stamped by runner)
+    std::string run_id;
+    std::string module_id;
+    int mode = 0;                     // arches::stream::ExecutionMode
+    std::vector<uint8_t> config_blob; // serialised Any
+    std::atomic<bool> paused{false};
+    std::atomic<bool> stop{false};
+    int64_t batch_seq = 0;
+    std::string type_url;       // result type URL
+    uint64_t next_sequence = 0; // monotonic per-run counter (stamped by runner)
 };
 
 class RunOrchestrator {
-public:
+    public:
     RunOrchestrator(Spool& spool, StreamClient& stream, HalInvokeFn hal_fn);
     ~RunOrchestrator();
 
-    RunOrchestrator(const RunOrchestrator&)            = delete;
+    RunOrchestrator(const RunOrchestrator&) = delete;
     RunOrchestrator& operator=(const RunOrchestrator&) = delete;
 
     // Handle incoming server commands (called from stream thread).
@@ -81,10 +79,10 @@ public:
     // Stop all active runs (shutdown).
     void stop_all();
 
-private:
+    private:
     struct RunEntry {
         std::shared_ptr<RunContext> ctx;
-        std::thread                 thread;
+        std::thread thread;
     };
 
     void driver_thread(std::shared_ptr<RunContext> ctx);
@@ -97,21 +95,16 @@ private:
     // `state` is the RunState to stamp on the batch + spool run-state (RUNNING
     // mid-run, PAUSED while paused, and the terminal COMPLETED / FAILED /
     // CANCELLED at end-of-run). `terminal` marks the final batch for the run.
-    void flush_results(RunContext& ctx,
-                       std::vector<hal::TestResult> results,
-                       arches::stream::RunState state,
-                       bool terminal);
+    void flush_results(RunContext& ctx, std::vector<hal::TestResult> results,
+                       arches::stream::RunState state, bool terminal);
 
     // Synthesize a special-status result (TIMEOUT, ABORTED, ERROR) and flush.
-    void flush_synthetic(RunContext& ctx,
-                         hal::Status status,
-                         const std::string& error_message,
-                         arches::stream::RunState state,
-                         bool terminal);
+    void flush_synthetic(RunContext& ctx, hal::Status status, const std::string& error_message,
+                         arches::stream::RunState state, bool terminal);
 
-    Spool&          spool_;
-    StreamClient&   stream_;
-    HalInvokeFn     hal_fn_;
+    Spool& spool_;
+    StreamClient& stream_;
+    HalInvokeFn hal_fn_;
 
     mutable std::mutex mtx_;
     std::unordered_map<std::string, RunEntry> runs_;

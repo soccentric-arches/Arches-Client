@@ -10,21 +10,20 @@
 #include <string>
 #include <vector>
 
-class CpuTesting;  // forward-declare to minimise include fan-out in headers
+class CpuTesting; // forward-declare to minimise include fan-out in headers
 
 namespace arches::client {
 
 class CpuAdapter final : public AdapterBase {
-public:
+    public:
     CpuAdapter();
     ~CpuAdapter() override;
 
     std::string module_id() const override { return "cpu"; }
 
-    std::vector<hal::TestResult> run(int mode,
-                                      const std::vector<uint8_t>& config_bytes) override;
+    std::vector<hal::TestResult> run(int mode, const std::vector<uint8_t>& config_bytes) override;
 
-private:
+    private:
     std::unique_ptr<CpuTesting> hal_;
 };
 

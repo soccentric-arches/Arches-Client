@@ -3,18 +3,18 @@
 #include <memory>
 #include <vector>
 
-class MipiDsiTesting;  // forward declaration
+class MipiDsiTesting; // forward declaration
 
 namespace arches::client {
 
 class MipiDsiAdapter final : public AdapterBase {
-public:
+    public:
     MipiDsiAdapter();
     ~MipiDsiAdapter() override;
     std::string module_id() const override { return "mipi_dsi"; }
-    std::vector<hal::TestResult> run(int mode,
-                                      const std::vector<uint8_t>& config_bytes) override;
-private:
+    std::vector<hal::TestResult> run(int mode, const std::vector<uint8_t>& config_bytes) override;
+
+    private:
     std::unique_ptr<MipiDsiTesting> hal_;
 };
 

@@ -3,18 +3,18 @@
 #include <memory>
 #include <vector>
 
-class AccelerometerTesting;  // forward declaration
+class AccelerometerTesting; // forward declaration
 
 namespace arches::client {
 
 class AccelerometerAdapter final : public AdapterBase {
-public:
+    public:
     AccelerometerAdapter();
     ~AccelerometerAdapter() override;
     std::string module_id() const override { return "accelerometer"; }
-    std::vector<hal::TestResult> run(int mode,
-                                      const std::vector<uint8_t>& config_bytes) override;
-private:
+    std::vector<hal::TestResult> run(int mode, const std::vector<uint8_t>& config_bytes) override;
+
+    private:
     std::unique_ptr<AccelerometerTesting> hal_;
 };
 

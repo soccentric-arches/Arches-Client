@@ -6,19 +6,19 @@
 #include <memory>
 #include <vector>
 
-class AudioInterfaces;  // forward declaration
+class AudioInterfaces; // forward declaration
 
 namespace arches::client {
 
 class AudioInterfacesAdapter final : public AdapterBase {
-public:
+    public:
     AudioInterfacesAdapter();
     ~AudioInterfacesAdapter() override;
 
     std::string module_id() const override { return "audio_interfaces"; }
-    std::vector<hal::TestResult> run(int mode,
-                                      const std::vector<uint8_t>& config_bytes) override;
-private:
+    std::vector<hal::TestResult> run(int mode, const std::vector<uint8_t>& config_bytes) override;
+
+    private:
     std::unique_ptr<AudioInterfaces> hal_;
 };
 

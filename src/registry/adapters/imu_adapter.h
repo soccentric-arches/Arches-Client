@@ -6,19 +6,19 @@
 #include <memory>
 #include <vector>
 
-class ImuTesting;  // forward declaration
+class ImuTesting; // forward declaration
 
 namespace arches::client {
 
 class ImuAdapter final : public AdapterBase {
-public:
+    public:
     ImuAdapter();
     ~ImuAdapter() override;
 
     std::string module_id() const override { return "imu"; }
-    std::vector<hal::TestResult> run(int mode,
-                                      const std::vector<uint8_t>& config_bytes) override;
-private:
+    std::vector<hal::TestResult> run(int mode, const std::vector<uint8_t>& config_bytes) override;
+
+    private:
     std::unique_ptr<ImuTesting> hal_;
 };
 

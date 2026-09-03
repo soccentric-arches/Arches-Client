@@ -6,19 +6,19 @@
 #include <memory>
 #include <vector>
 
-class FunctionalSafetyTesting;  // forward declaration
+class FunctionalSafetyTesting; // forward declaration
 
 namespace arches::client {
 
 class FunctionalSafetyAdapter final : public AdapterBase {
-public:
+    public:
     FunctionalSafetyAdapter();
     ~FunctionalSafetyAdapter() override;
 
     std::string module_id() const override { return "functional_safety"; }
-    std::vector<hal::TestResult> run(int mode,
-                                      const std::vector<uint8_t>& config_bytes) override;
-private:
+    std::vector<hal::TestResult> run(int mode, const std::vector<uint8_t>& config_bytes) override;
+
+    private:
     std::unique_ptr<FunctionalSafetyTesting> hal_;
 };
 

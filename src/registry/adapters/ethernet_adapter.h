@@ -6,19 +6,19 @@
 #include <memory>
 #include <vector>
 
-class EthernetTesting;  // forward declaration
+class EthernetTesting; // forward declaration
 
 namespace arches::client {
 
 class EthernetAdapter final : public AdapterBase {
-public:
+    public:
     EthernetAdapter();
     ~EthernetAdapter() override;
 
     std::string module_id() const override { return "ethernet"; }
-    std::vector<hal::TestResult> run(int mode,
-                                      const std::vector<uint8_t>& config_bytes) override;
-private:
+    std::vector<hal::TestResult> run(int mode, const std::vector<uint8_t>& config_bytes) override;
+
+    private:
     std::unique_ptr<EthernetTesting> hal_;
 };
 

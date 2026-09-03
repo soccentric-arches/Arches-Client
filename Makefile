@@ -167,13 +167,17 @@ run-b: deploy-b ## Run test app on $(IP_B) (usage: make run-b [name] [args...], 
 # Code quality & Docs (run inside the Docker build container)
 # =============================================================================
 
+# These run the analyser directly (CMake deliberately defines no custom
+# targets for them — see CMakeLists.txt). When the tool is not in the
+# container they report and exit 0, matching the fleet convention in
+# Arches-Server/.claude/validate.sh.
 format: docker-image ## Format code with clang-format (in Docker)
 	@echo "Running clang-format in Docker..."
-	$(DOCKER_RUN) "cd $(DOCKER_CROSS_BUILD_DIR) && ninja format"
+	$(DOCKER_RUN) "if ! command -v clang-format >/dev/null 2>&1; then echo 'clang-format not installed - skipping'; exit 0; fi; cd $(DOCKER_SRC_DIR) && find src tests \( -name '*.cc' -o -name '*.cpp' -o -name '*.h' \) -print0 | xargs -0 -r clang-format -i"
 
 cppcheck: docker-image ## Run static analysis with cppcheck (in Docker)
 	@echo "Running cppcheck in Docker..."
-	$(DOCKER_RUN) "cd $(DOCKER_CROSS_BUILD_DIR) && ninja cppcheck"
+	$(DOCKER_RUN) "if ! command -v cppcheck >/dev/null 2>&1; then echo 'cppcheck not installed - skipping'; exit 0; fi; cd $(DOCKER_SRC_DIR) && cppcheck --std=c++17 --language=c++ --force --inline-suppr -q --suppress=missingIncludeSystem,missingInclude,unmatchedSuppression src tests"
 
 doc: docker-image ## Generate Doxygen documentation (in Docker)
 	@echo "Generating documentation in Docker..."

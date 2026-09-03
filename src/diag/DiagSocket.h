@@ -4,9 +4,9 @@
 // Accepts one-line text queries and responds with JSON.
 
 #include <atomic>
+#include <functional>
 #include <string>
 #include <thread>
-#include <functional>
 
 namespace arches::client {
 
@@ -14,25 +14,25 @@ namespace arches::client {
 using DiagQueryFn = std::function<std::string(const std::string&)>;
 
 class DiagSocket {
-public:
+    public:
     // socket_path: e.g. "/run/arches/client.sock"
     DiagSocket(std::string socket_path, DiagQueryFn query_fn);
     ~DiagSocket();
 
-    DiagSocket(const DiagSocket&)            = delete;
+    DiagSocket(const DiagSocket&) = delete;
     DiagSocket& operator=(const DiagSocket&) = delete;
 
     void start();
     void stop();
 
-private:
+    private:
     void accept_loop();
 
-    std::string     path_;
-    DiagQueryFn     query_fn_;
+    std::string path_;
+    DiagQueryFn query_fn_;
     std::atomic<bool> running_{false};
-    int             server_fd_{-1};
-    std::thread     thread_;
+    int server_fd_{-1};
+    std::thread thread_;
 };
 
 } // namespace arches::client

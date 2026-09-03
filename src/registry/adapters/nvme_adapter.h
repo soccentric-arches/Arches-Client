@@ -3,18 +3,18 @@
 #include <memory>
 #include <vector>
 
-class NvmeTesting;  // forward declaration
+class NvmeTesting; // forward declaration
 
 namespace arches::client {
 
 class NvmeAdapter final : public AdapterBase {
-public:
+    public:
     NvmeAdapter();
     ~NvmeAdapter() override;
     std::string module_id() const override { return "nvme"; }
-    std::vector<hal::TestResult> run(int mode,
-                                      const std::vector<uint8_t>& config_bytes) override;
-private:
+    std::vector<hal::TestResult> run(int mode, const std::vector<uint8_t>& config_bytes) override;
+
+    private:
     std::unique_ptr<NvmeTesting> hal_;
 };
 

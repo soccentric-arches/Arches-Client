@@ -20,10 +20,12 @@
 
 // Forward declarations for generated proto types.
 // The actual header is included in StreamClient.cc.
-namespace arches { namespace stream {
-    class ClientMessage;
-    class ServerMessage;
-}}  // namespace arches::stream
+namespace arches {
+namespace stream {
+class ClientMessage;
+class ServerMessage;
+} // namespace stream
+} // namespace arches
 
 namespace arches::client {
 
@@ -32,19 +34,19 @@ using ServerMessageCb = std::function<void(const arches::stream::ServerMessage&)
 
 struct StreamClientConfig {
     std::string server_address;
-    uint16_t    server_port{50051};
-    std::string tls_ca;    // empty = plaintext
+    uint16_t server_port{50051};
+    std::string tls_ca; // empty = plaintext
     std::string tls_cert;
     std::string tls_key;
     std::chrono::seconds max_backoff{30};
 };
 
 class StreamClient {
-public:
+    public:
     explicit StreamClient(StreamClientConfig cfg, ServerMessageCb on_message);
     ~StreamClient();
 
-    StreamClient(const StreamClient&)            = delete;
+    StreamClient(const StreamClient&) = delete;
     StreamClient& operator=(const StreamClient&) = delete;
 
     // Start the stream thread. Non-blocking.
@@ -59,17 +61,17 @@ public:
 
     bool is_connected() const noexcept;
 
-private:
+    private:
     void stream_loop();
     void run_stream();
 
-    StreamClientConfig         cfg_;
-    ServerMessageCb            on_message_;
-    std::atomic<bool>          running_{false};
-    std::atomic<bool>          connected_{false};
-    std::thread                thread_;
+    StreamClientConfig cfg_;
+    ServerMessageCb on_message_;
+    std::atomic<bool> running_{false};
+    std::atomic<bool> connected_{false};
+    std::thread thread_;
 
-    std::mutex                             send_queue_mtx_;
+    std::mutex send_queue_mtx_;
     std::queue<arches::stream::ClientMessage> send_queue_;
 };
 

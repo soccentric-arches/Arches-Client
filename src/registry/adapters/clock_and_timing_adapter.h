@@ -6,19 +6,19 @@
 #include <memory>
 #include <vector>
 
-class ClockAndTimingTesting;  // forward declaration
+class ClockAndTimingTesting; // forward declaration
 
 namespace arches::client {
 
 class ClockAndTimingAdapter final : public AdapterBase {
-public:
+    public:
     ClockAndTimingAdapter();
     ~ClockAndTimingAdapter() override;
 
     std::string module_id() const override { return "clock_and_timing"; }
-    std::vector<hal::TestResult> run(int mode,
-                                      const std::vector<uint8_t>& config_bytes) override;
-private:
+    std::vector<hal::TestResult> run(int mode, const std::vector<uint8_t>& config_bytes) override;
+
+    private:
     std::unique_ptr<ClockAndTimingTesting> hal_;
 };
 

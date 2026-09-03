@@ -22,11 +22,11 @@
 #include <variant>
 #include <vector>
 
-#include "lib_base.h"
 #include "common.pb.h"
-#include <google/protobuf/timestamp.pb.h>
-#include <google/protobuf/duration.pb.h>
+#include "lib_base.h"
 #include <google/protobuf/any.pb.h>
+#include <google/protobuf/duration.pb.h>
+#include <google/protobuf/timestamp.pb.h>
 
 namespace arches::client::hal_bridge {
 
@@ -36,11 +36,11 @@ inline constexpr int kMaxSubtestDepth = 32;
 
 // ─── Enum conversion ───────────────────────────────────────────────────────
 
-hal::common::TestStatus  to_proto(hal::Status s);
-hal::Status              from_proto(hal::common::TestStatus s);
+hal::common::TestStatus to_proto(hal::Status s);
+hal::Status from_proto(hal::common::TestStatus s);
 
 hal::common::TestSeverity to_proto(hal::Severity s);
-hal::Severity             from_proto(hal::common::TestSeverity s);
+hal::Severity from_proto(hal::common::TestSeverity s);
 
 // Explicit ExecutionMode mapping (proto int value → proto enum).
 // Replaces the bare static_cast used in RunOrchestrator::flush_results.
@@ -50,8 +50,7 @@ hal::common::ExecutionMode execution_mode_from_int(int mode_int);
 // ─── Typed value ──────────────────────────────────────────────────────────
 
 hal::common::TypedValue to_proto(const hal::Value& v);
-hal::Value              from_proto(const hal::common::TypedValue& v,
-                                   const std::string& key = "");
+hal::Value from_proto(const hal::common::TypedValue& v, const std::string& key = "");
 // `key` is only used for the [SERIALIZER-FALLBACK] log message.
 
 // ─── Timestamp / Duration ─────────────────────────────────────────────────
@@ -62,21 +61,18 @@ std::chrono::system_clock::time_point from_proto(const google::protobuf::Timesta
 
 // Duration: nanosecond resolution. Negative values are clamped to zero.
 google::protobuf::Duration to_proto(std::chrono::nanoseconds d);
-std::chrono::nanoseconds   from_proto(const google::protobuf::Duration& d);
+std::chrono::nanoseconds from_proto(const google::protobuf::Duration& d);
 
 // ─── Map helpers ──────────────────────────────────────────────────────────
 
-void copy_reason_to_proto(
-    const std::map<std::string, std::string>& src,
-    google::protobuf::Map<std::string, std::string>* dst);
+void copy_reason_to_proto(const std::map<std::string, std::string>& src,
+                          google::protobuf::Map<std::string, std::string>* dst);
 
-void copy_value_map_to_proto(
-    const std::map<std::string, hal::Value>& src,
-    google::protobuf::Map<std::string, hal::common::TypedValue>* dst);
+void copy_value_map_to_proto(const std::map<std::string, hal::Value>& src,
+                             google::protobuf::Map<std::string, hal::common::TypedValue>* dst);
 
-void copy_reason_from_proto(
-    const google::protobuf::Map<std::string, std::string>& src,
-    std::map<std::string, std::string>& dst);
+void copy_reason_from_proto(const google::protobuf::Map<std::string, std::string>& src,
+                            std::map<std::string, std::string>& dst);
 
 void copy_value_map_from_proto(
     const google::protobuf::Map<std::string, hal::common::TypedValue>& src,
@@ -85,13 +81,13 @@ void copy_value_map_from_proto(
 // ─── TestOutput ───────────────────────────────────────────────────────────
 
 hal::common::TestOutput to_proto(const hal::TestOutput& out);
-hal::TestOutput         from_proto(const hal::common::TestOutput& out);
+hal::TestOutput from_proto(const hal::common::TestOutput& out);
 
 // ─── TestResult (recursive) ───────────────────────────────────────────────
 
 // depth is used internally to enforce kMaxSubtestDepth.
 hal::common::TestResult to_proto(const hal::TestResult& r, int depth = 0);
-hal::TestResult         from_proto(const hal::common::TestResult& r, int depth = 0);
+hal::TestResult from_proto(const hal::common::TestResult& r, int depth = 0);
 
 // ─── Module Config parsing ────────────────────────────────────────────────
 //
@@ -113,7 +109,7 @@ std::vector<std::string> extract_test_names(const std::vector<uint8_t>& any_byte
 // (validate-and-clamp), and fall back to `available` when the config is empty,
 // unparsable, or names nothing the HAL knows. This is what every adapter calls.
 std::vector<std::string> resolve_test_names(const std::vector<uint8_t>& any_bytes,
-                                              const std::vector<std::string>& available);
+                                            const std::vector<std::string>& available);
 
 // ─── Module-specific Result packing (§5-approved contract) ─────────────────
 //
@@ -128,8 +124,7 @@ std::vector<std::string> resolve_test_names(const std::vector<uint8_t>& any_byte
 // false (and leaves `out` untouched) when the module Result descriptor is not
 // found (unknown/proto-only module) — caller should then fall back to packing a
 // bare hal.common.TestResult so no result is ever silently dropped.
-bool pack_module_result(const std::string& module_id,
-                        const std::vector<hal::TestResult>& results,
+bool pack_module_result(const std::string& module_id, const std::vector<hal::TestResult>& results,
                         google::protobuf::Any* out);
 
 // Type URL for a module-specific Result (used to populate ResultSample.type_url /

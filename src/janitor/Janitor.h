@@ -13,28 +13,28 @@
 namespace arches::client {
 
 struct JanitorConfig {
-    std::chrono::hours  retention{24};
+    std::chrono::hours retention{24};
     std::chrono::seconds sweep_interval{300};
-    std::string         board_id;
+    std::string board_id;
 };
 
 class Janitor {
-public:
+    public:
     Janitor(Spool& spool, StreamClient& stream, JanitorConfig cfg);
     ~Janitor();
 
     void start();
     void stop();
 
-private:
+    private:
     void janitor_loop();
     void sweep();
 
-    Spool&          spool_;
-    StreamClient&   stream_;
-    JanitorConfig   cfg_;
+    Spool& spool_;
+    StreamClient& stream_;
+    JanitorConfig cfg_;
     std::atomic<bool> running_{false};
-    std::thread       thread_;
+    std::thread thread_;
 };
 
 } // namespace arches::client

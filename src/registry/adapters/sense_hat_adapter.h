@@ -6,19 +6,19 @@
 #include <memory>
 #include <vector>
 
-class SenseHatTesting;  // forward declaration
+class SenseHatTesting; // forward declaration
 
 namespace arches::client {
 
 class SenseHatAdapter final : public AdapterBase {
-public:
+    public:
     SenseHatAdapter();
     ~SenseHatAdapter() override;
 
     std::string module_id() const override { return "sense_hat"; }
-    std::vector<hal::TestResult> run(int mode,
-                                      const std::vector<uint8_t>& config_bytes) override;
-private:
+    std::vector<hal::TestResult> run(int mode, const std::vector<uint8_t>& config_bytes) override;
+
+    private:
     std::unique_ptr<SenseHatTesting> hal_;
 };
 

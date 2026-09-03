@@ -6,19 +6,19 @@
 #include <memory>
 #include <vector>
 
-class SoftwareInterfaceTesting;  // forward declaration
+class SoftwareInterfaceTesting; // forward declaration
 
 namespace arches::client {
 
 class SoftwareInterfaceAdapter final : public AdapterBase {
-public:
+    public:
     SoftwareInterfaceAdapter();
     ~SoftwareInterfaceAdapter() override;
 
     std::string module_id() const override { return "software_interface"; }
-    std::vector<hal::TestResult> run(int mode,
-                                      const std::vector<uint8_t>& config_bytes) override;
-private:
+    std::vector<hal::TestResult> run(int mode, const std::vector<uint8_t>& config_bytes) override;
+
+    private:
     std::unique_ptr<SoftwareInterfaceTesting> hal_;
 };
 

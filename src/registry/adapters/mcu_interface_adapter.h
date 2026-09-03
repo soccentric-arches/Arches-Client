@@ -6,19 +6,19 @@
 #include <memory>
 #include <vector>
 
-class McuInterfaceTesting;  // forward declaration
+class McuInterfaceTesting; // forward declaration
 
 namespace arches::client {
 
 class McuInterfaceAdapter final : public AdapterBase {
-public:
+    public:
     McuInterfaceAdapter();
     ~McuInterfaceAdapter() override;
 
     std::string module_id() const override { return "mcu_interface"; }
-    std::vector<hal::TestResult> run(int mode,
-                                      const std::vector<uint8_t>& config_bytes) override;
-private:
+    std::vector<hal::TestResult> run(int mode, const std::vector<uint8_t>& config_bytes) override;
+
+    private:
     std::unique_ptr<McuInterfaceTesting> hal_;
 };
 

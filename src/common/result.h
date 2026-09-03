@@ -9,9 +9,8 @@ namespace arches::client {
 // Lightweight value-based error propagation.
 // Use for expected failure paths (I/O, validation, parsing).
 // Do not use for programmer errors — let those throw or assert.
-template <typename T>
-class Result {
-public:
+template <typename T> class Result {
+    public:
     static Result ok(T value) {
         Result r;
         r.value_ = std::move(value);
@@ -33,7 +32,7 @@ public:
 
     const std::string& error() const noexcept { return error_; }
 
-private:
+    private:
     std::optional<T> value_;
     std::string error_;
 };

@@ -16,9 +16,9 @@ namespace arches::client::hal_service {
 
 namespace {
 // Default cycle interval when the caller doesn't specify one.
-constexpr int kDefaultIntervalMs   = 1000;
-constexpr int kDefaultPollMs       = 200;
-constexpr int kPauseCheckMs        = 50;   // sleep granularity while paused
+constexpr int kDefaultIntervalMs = 1000;
+constexpr int kDefaultPollMs = 200;
+constexpr int kPauseCheckMs = 50; // sleep granularity while paused
 } // namespace
 
 // ---------------------------------------------------------------------------
@@ -26,7 +26,7 @@ constexpr int kPauseCheckMs        = 50;   // sleep granularity while paused
 // ---------------------------------------------------------------------------
 
 HalServiceImpl::HalServiceImpl(std::shared_ptr<AdapterRegistry> adapter_reg,
-                                const ModuleRegistry&             module_reg)
+                               const ModuleRegistry& module_reg)
     : adapter_reg_(std::move(adapter_reg)), module_reg_(module_reg) {}
 
 // ---------------------------------------------------------------------------
@@ -38,17 +38,14 @@ HalServiceImpl::HalServiceImpl(std::shared_ptr<AdapterRegistry> adapter_reg,
         return {::grpc::StatusCode::INVALID_ARGUMENT, "module_id is required"};
     // Check adapter registry — if we have an adapter it's a known module.
     if (!adapter_reg_->has_adapter(module_id))
-        return {::grpc::StatusCode::INVALID_ARGUMENT,
-                "unknown module_id: " + module_id};
+        return {::grpc::StatusCode::INVALID_ARGUMENT, "unknown module_id: " + module_id};
     return ::grpc::Status::OK;
 }
 
 // static
-hal::common::ResultEnvelope HalServiceImpl::make_envelope(
-    const std::string&         module_id,
-    hal::common::ExecutionMode mode,
-    const hal::TestResult&     r)
-{
+hal::common::ResultEnvelope HalServiceImpl::make_envelope(const std::string& module_id,
+                                                          hal::common::ExecutionMode mode,
+                                                          const hal::TestResult& r) {
     namespace br = arches::client::hal_bridge;
 
     hal::common::ResultEnvelope env;
@@ -83,12 +80,12 @@ void HalServiceImpl::release_session(const std::string& module_id) {
 }
 
 std::shared_ptr<HalServiceImpl::Session>
-HalServiceImpl::find_session(const std::string& module_id,
-                              const std::string& /*session_id*/) {
+HalServiceImpl::find_session(const std::string& module_id, const std::string& /*session_id*/) {
     // session_id is unused in v1; we track one session per module.
     std::lock_guard<std::mutex> lk(sessions_mu_);
     auto it = sessions_.find(module_id);
-    if (it == sessions_.end()) return nullptr;
+    if (it == sessions_.end())
+        return nullptr;
     return it->second;
 }
 
@@ -96,19 +93,16 @@ HalServiceImpl::find_session(const std::string& module_id,
 // RunSingleShot  (unary)
 // ---------------------------------------------------------------------------
 
-::grpc::Status HalServiceImpl::RunSingleShot(
-    ::grpc::ServerContext*        /*ctx*/,
-    const hal::SingleShotRequest*  req,
-    hal::common::ResultEnvelope*   resp)
-{
+::grpc::Status HalServiceImpl::RunSingleShot(::grpc::ServerContext* /*ctx*/,
+                                             const hal::SingleShotRequest* req,
+                                             hal::common::ResultEnvelope* resp) {
     auto st = validate_module(req->module_id());
-    if (!st.ok()) return st;
+    if (!st.ok())
+        return st;
 
     spdlog::info("hal_service: RunSingleShot module_id={}", req->module_id());
 
-    auto results = adapter_reg_->invoke(req->module_id(),
-                                         1 /*SINGLE_SHOT*/,
-                                         {});
+    auto results = adapter_reg_->invoke(req->module_id(), 1 /*SINGLE_SHOT*/, {});
     if (results.empty()) {
         resp->set_module_id(req->module_id());
         resp->set_mode(hal::common::SINGLE_SHOT);
@@ -125,32 +119,32 @@ HalServiceImpl::find_session(const std::string& module_id,
 // StartLongTerm  (server-streaming)
 // ---------------------------------------------------------------------------
 
-::grpc::Status HalServiceImpl::StartLongTerm(
-    ::grpc::ServerContext*                              ctx,
-    const hal::LongTermRequest*                        req,
-    ::grpc::ServerWriter<hal::common::ResultEnvelope>* writer)
-{
+::grpc::Status
+HalServiceImpl::StartLongTerm(::grpc::ServerContext* ctx, const hal::LongTermRequest* req,
+                              ::grpc::ServerWriter<hal::common::ResultEnvelope>* writer) {
     auto st = validate_module(req->module_id());
-    if (!st.ok()) return st;
+    if (!st.ok())
+        return st;
 
-    const int     interval_ms  = req->common().interval_ms() > 0
-                                    ? req->common().interval_ms()
-                                    : kDefaultIntervalMs;
-    const int64_t duration_ms  = req->common().duration_ms();
-    const bool    run_forever  = req->common().run_forever() || duration_ms <= 0;
+    const int interval_ms =
+        req->common().interval_ms() > 0 ? req->common().interval_ms() : kDefaultIntervalMs;
+    const int64_t duration_ms = req->common().duration_ms();
+    const bool run_forever = req->common().run_forever() || duration_ms <= 0;
 
     spdlog::info("hal_service: StartLongTerm module_id={} interval={}ms forever={}",
                  req->module_id(), interval_ms, run_forever);
 
-    auto session   = acquire_session(req->module_id());
-    auto t_start   = std::chrono::steady_clock::now();
+    auto session = acquire_session(req->module_id());
+    auto t_start = std::chrono::steady_clock::now();
 
     while (!ctx->IsCancelled() && !session->stop_requested.load()) {
         // Duration check
         if (!run_forever) {
             auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::steady_clock::now() - t_start).count();
-            if (elapsed >= duration_ms) break;
+                               std::chrono::steady_clock::now() - t_start)
+                               .count();
+            if (elapsed >= duration_ms)
+                break;
         }
         // Pause
         if (session->paused.load()) {
@@ -176,31 +170,31 @@ HalServiceImpl::find_session(const std::string& module_id,
 // StartMonitoring  (server-streaming)
 // ---------------------------------------------------------------------------
 
-::grpc::Status HalServiceImpl::StartMonitoring(
-    ::grpc::ServerContext*                              ctx,
-    const hal::MonitoringRequest*                      req,
-    ::grpc::ServerWriter<hal::common::ResultEnvelope>* writer)
-{
+::grpc::Status
+HalServiceImpl::StartMonitoring(::grpc::ServerContext* ctx, const hal::MonitoringRequest* req,
+                                ::grpc::ServerWriter<hal::common::ResultEnvelope>* writer) {
     auto st = validate_module(req->module_id());
-    if (!st.ok()) return st;
+    if (!st.ok())
+        return st;
 
-    const int     interval_ms  = req->common().interval_ms() > 0
-                                    ? req->common().interval_ms()
-                                    : kDefaultIntervalMs;
-    const int64_t duration_ms  = req->common().duration_ms();
-    const bool    run_forever  = req->common().run_forever() || duration_ms <= 0;
+    const int interval_ms =
+        req->common().interval_ms() > 0 ? req->common().interval_ms() : kDefaultIntervalMs;
+    const int64_t duration_ms = req->common().duration_ms();
+    const bool run_forever = req->common().run_forever() || duration_ms <= 0;
 
     spdlog::info("hal_service: StartMonitoring module_id={} interval={}ms forever={}",
                  req->module_id(), interval_ms, run_forever);
 
-    auto session   = acquire_session(req->module_id());
-    auto t_start   = std::chrono::steady_clock::now();
+    auto session = acquire_session(req->module_id());
+    auto t_start = std::chrono::steady_clock::now();
 
     while (!ctx->IsCancelled() && !session->stop_requested.load()) {
         if (!run_forever) {
             auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::steady_clock::now() - t_start).count();
-            if (elapsed >= duration_ms) break;
+                               std::chrono::steady_clock::now() - t_start)
+                               .count();
+            if (elapsed >= duration_ms)
+                break;
         }
         if (session->paused.load()) {
             std::this_thread::sleep_for(std::chrono::milliseconds(kPauseCheckMs));
@@ -225,20 +219,17 @@ HalServiceImpl::find_session(const std::string& module_id,
 // StartEventBased  (server-streaming)
 // ---------------------------------------------------------------------------
 
-::grpc::Status HalServiceImpl::StartEventBased(
-    ::grpc::ServerContext*                              ctx,
-    const hal::EventBasedRequest*                      req,
-    ::grpc::ServerWriter<hal::common::ResultEnvelope>* writer)
-{
+::grpc::Status
+HalServiceImpl::StartEventBased(::grpc::ServerContext* ctx, const hal::EventBasedRequest* req,
+                                ::grpc::ServerWriter<hal::common::ResultEnvelope>* writer) {
     auto st = validate_module(req->module_id());
-    if (!st.ok()) return st;
+    if (!st.ok())
+        return st;
 
-    const int poll_ms = req->common().poll_interval_ms() > 0
-                            ? req->common().poll_interval_ms()
-                            : kDefaultPollMs;
+    const int poll_ms =
+        req->common().poll_interval_ms() > 0 ? req->common().poll_interval_ms() : kDefaultPollMs;
 
-    spdlog::info("hal_service: StartEventBased module_id={} poll={}ms",
-                 req->module_id(), poll_ms);
+    spdlog::info("hal_service: StartEventBased module_id={} poll={}ms", req->module_id(), poll_ms);
 
     auto session = acquire_session(req->module_id());
 
@@ -267,13 +258,10 @@ HalServiceImpl::find_session(const std::string& module_id,
 // Stop / Pause / Resume
 // ---------------------------------------------------------------------------
 
-::grpc::Status HalServiceImpl::Stop(
-    ::grpc::ServerContext* /*ctx*/,
-    const hal::StopRequest*  req,
-    hal::StopResponse*       resp)
-{
-    spdlog::info("hal_service: Stop module_id={} session_id={}",
-                 req->module_id(), req->session_id());
+::grpc::Status HalServiceImpl::Stop(::grpc::ServerContext* /*ctx*/, const hal::StopRequest* req,
+                                    hal::StopResponse* resp) {
+    spdlog::info("hal_service: Stop module_id={} session_id={}", req->module_id(),
+                 req->session_id());
     auto s = find_session(req->module_id(), req->session_id());
     if (s) {
         s->stop_requested.store(true);
@@ -285,11 +273,8 @@ HalServiceImpl::find_session(const std::string& module_id,
     return ::grpc::Status::OK;
 }
 
-::grpc::Status HalServiceImpl::Pause(
-    ::grpc::ServerContext* /*ctx*/,
-    const hal::PauseRequest*  req,
-    hal::PauseResponse*       resp)
-{
+::grpc::Status HalServiceImpl::Pause(::grpc::ServerContext* /*ctx*/, const hal::PauseRequest* req,
+                                     hal::PauseResponse* resp) {
     spdlog::info("hal_service: Pause module_id={}", req->module_id());
     auto s = find_session(req->module_id(), req->session_id());
     if (s) {
@@ -302,11 +287,8 @@ HalServiceImpl::find_session(const std::string& module_id,
     return ::grpc::Status::OK;
 }
 
-::grpc::Status HalServiceImpl::Resume(
-    ::grpc::ServerContext* /*ctx*/,
-    const hal::ResumeRequest*  req,
-    hal::ResumeResponse*       resp)
-{
+::grpc::Status HalServiceImpl::Resume(::grpc::ServerContext* /*ctx*/, const hal::ResumeRequest* req,
+                                      hal::ResumeResponse* resp) {
     spdlog::info("hal_service: Resume module_id={}", req->module_id());
     auto s = find_session(req->module_id(), req->session_id());
     if (s) {
@@ -323,11 +305,9 @@ HalServiceImpl::find_session(const std::string& module_id,
 // ListModules
 // ---------------------------------------------------------------------------
 
-::grpc::Status HalServiceImpl::ListModules(
-    ::grpc::ServerContext*          /*ctx*/,
-    const hal::ListModulesRequest*  /*req*/,
-    hal::ListModulesResponse*        resp)
-{
+::grpc::Status HalServiceImpl::ListModules(::grpc::ServerContext* /*ctx*/,
+                                           const hal::ListModulesRequest* /*req*/,
+                                           hal::ListModulesResponse* resp) {
     spdlog::debug("hal_service: ListModules");
     for (const auto& m : module_reg_.all()) {
         auto* entry = resp->add_modules();
@@ -336,8 +316,11 @@ HalServiceImpl::find_session(const std::string& module_id,
         entry->set_config_type(m.config_type_url);
         entry->set_result_type(m.result_type_url);
         // version is stored as string (from YAML); convert to int32 best-effort.
-        try { entry->set_version(std::stoi(m.version)); }
-        catch (...) { entry->set_version(0); }
+        try {
+            entry->set_version(std::stoi(m.version));
+        } catch (...) {
+            entry->set_version(0);
+        }
         entry->set_status(m.status.empty() ? "active" : m.status);
         entry->set_source_path(m.source_path);
     }

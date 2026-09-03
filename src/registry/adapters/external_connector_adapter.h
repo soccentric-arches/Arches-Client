@@ -6,19 +6,19 @@
 #include <memory>
 #include <vector>
 
-class ExternalConnectorTesting;  // forward declaration
+class ExternalConnectorTesting; // forward declaration
 
 namespace arches::client {
 
 class ExternalConnectorAdapter final : public AdapterBase {
-public:
+    public:
     ExternalConnectorAdapter();
     ~ExternalConnectorAdapter() override;
 
     std::string module_id() const override { return "external_connector"; }
-    std::vector<hal::TestResult> run(int mode,
-                                      const std::vector<uint8_t>& config_bytes) override;
-private:
+    std::vector<hal::TestResult> run(int mode, const std::vector<uint8_t>& config_bytes) override;
+
+    private:
     std::unique_ptr<ExternalConnectorTesting> hal_;
 };
 

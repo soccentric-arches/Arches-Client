@@ -6,19 +6,19 @@
 #include <memory>
 #include <vector>
 
-class PcieTesting;  // forward declaration
+class PcieTesting; // forward declaration
 
 namespace arches::client {
 
 class PcieAdapter final : public AdapterBase {
-public:
+    public:
     PcieAdapter();
     ~PcieAdapter() override;
 
     std::string module_id() const override { return "pcie"; }
-    std::vector<hal::TestResult> run(int mode,
-                                      const std::vector<uint8_t>& config_bytes) override;
-private:
+    std::vector<hal::TestResult> run(int mode, const std::vector<uint8_t>& config_bytes) override;
+
+    private:
     std::unique_ptr<PcieTesting> hal_;
 };
 

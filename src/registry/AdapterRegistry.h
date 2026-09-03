@@ -18,11 +18,11 @@
 namespace arches::client {
 
 class AdapterRegistry {
-public:
+    public:
     AdapterRegistry() = default;
     ~AdapterRegistry() = default;
 
-    AdapterRegistry(const AdapterRegistry&)            = delete;
+    AdapterRegistry(const AdapterRegistry&) = delete;
     AdapterRegistry& operator=(const AdapterRegistry&) = delete;
 
     // Register an adapter.  Replaces any existing adapter for the same module_id.
@@ -33,14 +33,13 @@ public:
 
     // Invoke the adapter for `module_id`.
     // Returns an empty vector (with a logged warning) if no adapter is registered.
-    std::vector<hal::TestResult> invoke(const std::string& module_id,
-                                         int mode,
-                                         const std::vector<uint8_t>& config_bytes);
+    std::vector<hal::TestResult> invoke(const std::string& module_id, int mode,
+                                        const std::vector<uint8_t>& config_bytes);
 
     // List all registered module IDs (sorted).
     std::vector<std::string> registered_ids() const;
 
-private:
+    private:
     std::unordered_map<std::string, std::unique_ptr<AdapterBase>> adapters_;
 };
 

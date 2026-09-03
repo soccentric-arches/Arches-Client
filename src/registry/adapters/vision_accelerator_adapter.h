@@ -6,19 +6,19 @@
 #include <memory>
 #include <vector>
 
-class VisionAcceleratorTesting;  // forward declaration
+class VisionAcceleratorTesting; // forward declaration
 
 namespace arches::client {
 
 class VisionAcceleratorAdapter final : public AdapterBase {
-public:
+    public:
     VisionAcceleratorAdapter();
     ~VisionAcceleratorAdapter() override;
 
     std::string module_id() const override { return "vision_accelerator"; }
-    std::vector<hal::TestResult> run(int mode,
-                                      const std::vector<uint8_t>& config_bytes) override;
-private:
+    std::vector<hal::TestResult> run(int mode, const std::vector<uint8_t>& config_bytes) override;
+
+    private:
     std::unique_ptr<VisionAcceleratorTesting> hal_;
 };
 

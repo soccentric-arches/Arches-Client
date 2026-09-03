@@ -5,19 +5,19 @@
 #include <memory>
 #include <vector>
 
-class ThermalManagementTesting;  // forward declaration
+class ThermalManagementTesting; // forward declaration
 
 namespace arches::client {
 
 class ThermalAdapter final : public AdapterBase {
-public:
+    public:
     ThermalAdapter();
     ~ThermalAdapter() override;
 
     std::string module_id() const override { return "thermal_management"; }
-    std::vector<hal::TestResult> run(int mode,
-                                      const std::vector<uint8_t>& config_bytes) override;
-private:
+    std::vector<hal::TestResult> run(int mode, const std::vector<uint8_t>& config_bytes) override;
+
+    private:
     std::unique_ptr<ThermalManagementTesting> hal_;
 };
 

@@ -1,8 +1,8 @@
 #include "config/client_config.h"
 #include "config/client_id.h"
 
-#include <toml++/toml.hpp>
 #include <spdlog/spdlog.h>
+#include <toml++/toml.hpp>
 
 namespace arches::client::config {
 
@@ -41,14 +41,28 @@ Result<ClientConfig> ClientConfig::load(const std::string& path) {
         }
         cfg.hal_service_port = static_cast<uint16_t>(*v);
     }
-    if (auto v = tbl["hal_service_bind"].value<std::string>()) { cfg.hal_service_bind = *v; }
+    if (auto v = tbl["hal_service_bind"].value<std::string>()) {
+        cfg.hal_service_bind = *v;
+    }
 
-    if (auto v = tbl["spool_path"].value<std::string>())         { cfg.spool_path      = *v; }
-    if (auto v = tbl["client_id_path"].value<std::string>())     { cfg.client_id_path  = *v; }
-    if (auto v = tbl["modules_yaml_path"].value<std::string>())  { cfg.modules_yaml_path = *v; }
-    if (auto v = tbl["tls_ca"].value<std::string>())             { cfg.tls_ca          = *v; }
-    if (auto v = tbl["tls_cert"].value<std::string>())           { cfg.tls_cert        = *v; }
-    if (auto v = tbl["tls_key"].value<std::string>())            { cfg.tls_key         = *v; }
+    if (auto v = tbl["spool_path"].value<std::string>()) {
+        cfg.spool_path = *v;
+    }
+    if (auto v = tbl["client_id_path"].value<std::string>()) {
+        cfg.client_id_path = *v;
+    }
+    if (auto v = tbl["modules_yaml_path"].value<std::string>()) {
+        cfg.modules_yaml_path = *v;
+    }
+    if (auto v = tbl["tls_ca"].value<std::string>()) {
+        cfg.tls_ca = *v;
+    }
+    if (auto v = tbl["tls_cert"].value<std::string>()) {
+        cfg.tls_cert = *v;
+    }
+    if (auto v = tbl["tls_key"].value<std::string>()) {
+        cfg.tls_key = *v;
+    }
 
     if (auto v = tbl["result_spool_cap_bytes"].value<int64_t>()) {
         cfg.result_spool_cap_bytes = static_cast<uint64_t>(*v);
@@ -77,8 +91,8 @@ Result<ClientConfig> ClientConfig::load(const std::string& path) {
     }
     cfg.client_id = *id;
 
-    spdlog::debug("config loaded: server={}:{} spool={} client_id={}",
-        cfg.server_address, cfg.server_port, cfg.spool_path, cfg.client_id);
+    spdlog::debug("config loaded: server={}:{} spool={} client_id={}", cfg.server_address,
+                  cfg.server_port, cfg.spool_path, cfg.client_id);
 
     return Result<ClientConfig>::ok(std::move(cfg));
 }

@@ -6,19 +6,19 @@
 #include <memory>
 #include <vector>
 
-class CameraInterfacesTesting;  // forward declaration
+class CameraInterfacesTesting; // forward declaration
 
 namespace arches::client {
 
 class CameraInterfacesAdapter final : public AdapterBase {
-public:
+    public:
     CameraInterfacesAdapter();
     ~CameraInterfacesAdapter() override;
 
     std::string module_id() const override { return "camera_interfaces"; }
-    std::vector<hal::TestResult> run(int mode,
-                                      const std::vector<uint8_t>& config_bytes) override;
-private:
+    std::vector<hal::TestResult> run(int mode, const std::vector<uint8_t>& config_bytes) override;
+
+    private:
     std::unique_ptr<CameraInterfacesTesting> hal_;
 };
 

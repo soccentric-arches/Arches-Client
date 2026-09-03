@@ -1,12 +1,12 @@
 #include "app.h"
 
 #include <chrono>
-#include <thread>
 #include <spdlog/spdlog.h>
+#include <thread>
 
 #include "client_service.pb.h"
-#include "registry/AdapterRegistry.h"
 #include "hal_service/HalServiceImpl.h"
+#include "registry/AdapterRegistry.h"
 
 #include <grpcpp/grpcpp.h>
 
@@ -76,9 +76,8 @@ namespace arches::client {
 // build_adapter_registry — registers all known module adapters.
 // Adapters self-register here; no switch(module_id) anywhere else.
 // ---------------------------------------------------------------------------
-static std::unique_ptr<AdapterRegistry> build_adapter_registry(
-    const std::vector<ModuleEntry>& all_modules)
-{
+static std::unique_ptr<AdapterRegistry>
+build_adapter_registry(const std::vector<ModuleEntry>& all_modules) {
     auto reg = std::make_unique<AdapterRegistry>();
 
     // ── Real adapters — 35 modules with HAL C++ source ────────────────────
@@ -158,15 +157,13 @@ App::~App() = default;
 // ---------------------------------------------------------------------------
 
 bool App::init() {
-    spdlog::info("app: init client_id={} server={}:{}",
-        cfg_.client_id, cfg_.server_address, cfg_.server_port);
+    spdlog::info("app: init client_id={} server={}:{}", cfg_.client_id, cfg_.server_address,
+                 cfg_.server_port);
 
     // 1. Open spool
     try {
-        spool_ = std::make_unique<Spool>(
-            cfg_.spool_path,
-            cfg_.result_spool_cap_bytes,
-            cfg_.log_spool_cap_bytes);
+        spool_ = std::make_unique<Spool>(cfg_.spool_path, cfg_.result_spool_cap_bytes,
+                                         cfg_.log_spool_cap_bytes);
     } catch (const std::exception& e) {
         spdlog::critical("app: spool init failed: {}", e.what());
         return false;
@@ -186,26 +183,24 @@ bool App::init() {
     // 3. Stream client
     StreamClientConfig scfg;
     scfg.server_address = cfg_.server_address;
-    scfg.server_port    = cfg_.server_port;
-    scfg.tls_ca         = cfg_.tls_ca;
-    scfg.tls_cert       = cfg_.tls_cert;
-    scfg.tls_key        = cfg_.tls_key;
+    scfg.server_port = cfg_.server_port;
+    scfg.tls_ca = cfg_.tls_ca;
+    scfg.tls_cert = cfg_.tls_cert;
+    scfg.tls_key = cfg_.tls_key;
 
-    stream_ = std::make_unique<StreamClient>(scfg,
-        [this](const ServerMessage& msg){ on_server_message(msg); });
+    stream_ = std::make_unique<StreamClient>(
+        scfg, [this](const ServerMessage& msg) { on_server_message(msg); });
 
     // 4. Run orchestrator — wired to the adapter registry.
     auto adapter_registry = build_adapter_registry(registry_->all());
     // Capture by shared ownership so the lambda outlives this scope.
     auto shared_registry = std::shared_ptr<AdapterRegistry>(std::move(adapter_registry));
-    HalInvokeFn hal_fn = [shared_registry](const std::string& module_id,
-                                            int mode,
-                                            const std::vector<uint8_t>& cfg)
-                                            -> std::vector<hal::TestResult> {
+    HalInvokeFn hal_fn =
+        [shared_registry](const std::string& module_id, int mode,
+                          const std::vector<uint8_t>& cfg) -> std::vector<hal::TestResult> {
         return shared_registry->invoke(module_id, mode, cfg);
     };
-    orchestrator_ = std::make_unique<RunOrchestrator>(
-        *spool_, *stream_, std::move(hal_fn));
+    orchestrator_ = std::make_unique<RunOrchestrator>(*spool_, *stream_, std::move(hal_fn));
 
     // 4b. HalService gRPC server — shares the same adapter registry (invariant 0.2).
     //     Runs on hal_service_port; no DB writes on this path (invariant 0.3).
@@ -213,12 +208,12 @@ bool App::init() {
         const std::string listen_addr =
             cfg_.hal_service_bind + ":" + std::to_string(cfg_.hal_service_port);
 
-        auto hal_svc_impl = std::make_unique<hal_service::HalServiceImpl>(
-            shared_registry, *registry_);
+        auto hal_svc_impl =
+            std::make_unique<hal_service::HalServiceImpl>(shared_registry, *registry_);
 
         ::grpc::ServerBuilder builder;
         builder.AddListeningPort(listen_addr, ::grpc::InsecureServerCredentials());
-        builder.RegisterService(hal_svc_impl.release());  // gRPC takes ownership
+        builder.RegisterService(hal_svc_impl.release()); // gRPC takes ownership
         hal_service_server_ = builder.BuildAndStart();
         if (!hal_service_server_) {
             spdlog::critical("app: failed to start HalService on {}", listen_addr);
@@ -239,8 +234,7 @@ bool App::init() {
 
     // 7. Diagnostic socket (T045)
     diag_socket_ = std::make_unique<DiagSocket>(
-        "/run/arches/client.sock",
-        [this](const std::string& /*query*/) -> std::string {
+        "/run/arches/client.sock", [this](const std::string& /*query*/) -> std::string {
             auto states = spool_->all_run_states();
             std::string r = R"({"connected":)";
             r += stream_->is_connected() ? "true" : "false";
@@ -296,8 +290,7 @@ void App::run(std::atomic<bool>& shutdown) {
     spdlog::info("app: shutdown — stopping subsystems");
     // Shut down HalService with a grace period before stopping everything else.
     if (hal_service_server_) {
-        hal_service_server_->Shutdown(
-            std::chrono::system_clock::now() + std::chrono::seconds(5));
+        hal_service_server_->Shutdown(std::chrono::system_clock::now() + std::chrono::seconds(5));
         hal_service_server_.reset();
     }
     diag_socket_->stop();
@@ -314,39 +307,36 @@ void App::run(std::atomic<bool>& shutdown) {
 
 void App::on_server_message(const ServerMessage& msg) {
     switch (msg.payload_case()) {
-        case ServerMessage::kConfigureRun:
-            orchestrator_->on_configure(msg.configure_run());
-            break;
-        case ServerMessage::kStartRun:
-            orchestrator_->on_start(msg.start_run().run_id());
-            log_collector_->set_run_id(msg.start_run().run_id());
-            break;
-        case ServerMessage::kPauseRun:
-            orchestrator_->on_pause(msg.pause_run().run_id());
-            break;
-        case ServerMessage::kResumeRun:
-            orchestrator_->on_resume(msg.resume_run().run_id());
-            break;
-        case ServerMessage::kStopRun:
-            orchestrator_->on_stop(msg.stop_run().run_id());
-            log_collector_->set_run_id("_system");
-            break;
-        case ServerMessage::kRestartRun:
-            // Stop the old run and start the new one (if its config is pending).
-            orchestrator_->on_restart(msg.restart_run().old_run_id(),
-                                      msg.restart_run().new_run_id());
-            log_collector_->set_run_id(msg.restart_run().new_run_id());
-            break;
-        case ServerMessage::kBatchAck:
-            orchestrator_->on_batch_ack(
-                msg.batch_ack().run_id(), msg.batch_ack().batch_seq());
-            break;
-        case ServerMessage::kLogBatchAck:
-            spool_->ack_log(msg.log_batch_ack().run_id(),
-                             msg.log_batch_ack().batch_seq());
-            break;
-        default:
-            break;
+    case ServerMessage::kConfigureRun:
+        orchestrator_->on_configure(msg.configure_run());
+        break;
+    case ServerMessage::kStartRun:
+        orchestrator_->on_start(msg.start_run().run_id());
+        log_collector_->set_run_id(msg.start_run().run_id());
+        break;
+    case ServerMessage::kPauseRun:
+        orchestrator_->on_pause(msg.pause_run().run_id());
+        break;
+    case ServerMessage::kResumeRun:
+        orchestrator_->on_resume(msg.resume_run().run_id());
+        break;
+    case ServerMessage::kStopRun:
+        orchestrator_->on_stop(msg.stop_run().run_id());
+        log_collector_->set_run_id("_system");
+        break;
+    case ServerMessage::kRestartRun:
+        // Stop the old run and start the new one (if its config is pending).
+        orchestrator_->on_restart(msg.restart_run().old_run_id(), msg.restart_run().new_run_id());
+        log_collector_->set_run_id(msg.restart_run().new_run_id());
+        break;
+    case ServerMessage::kBatchAck:
+        orchestrator_->on_batch_ack(msg.batch_ack().run_id(), msg.batch_ack().batch_seq());
+        break;
+    case ServerMessage::kLogBatchAck:
+        spool_->ack_log(msg.log_batch_ack().run_id(), msg.log_batch_ack().batch_seq());
+        break;
+    default:
+        break;
     }
 }
 
@@ -369,8 +359,7 @@ void App::send_hello() {
     }
 
     stream_->send(std::move(msg));
-    spdlog::info("app: hello sent with {} active runs",
-                 spool_->all_run_states().size());
+    spdlog::info("app: hello sent with {} active runs", spool_->all_run_states().size());
 }
 
 // ---------------------------------------------------------------------------
@@ -379,14 +368,14 @@ void App::send_hello() {
 
 void App::send_unacked_replay() {
     auto batches = spool_->fetch_unacked(128);
-    if (batches.empty()) return;
+    if (batches.empty())
+        return;
     spdlog::info("app: replaying {} unacked batches", batches.size());
     for (const auto& row : batches) {
         TestResultBatch batch;
-        if (!batch.ParseFromArray(row.payload.data(),
-                                   static_cast<int>(row.payload.size()))) {
-            spdlog::warn("app: replay: failed to parse batch run_id={} seq={}",
-                         row.run_id, row.batch_seq);
+        if (!batch.ParseFromArray(row.payload.data(), static_cast<int>(row.payload.size()))) {
+            spdlog::warn("app: replay: failed to parse batch run_id={} seq={}", row.run_id,
+                         row.batch_seq);
             continue;
         }
         ClientMessage msg;
@@ -396,4 +385,3 @@ void App::send_unacked_replay() {
 }
 
 } // namespace arches::client
-

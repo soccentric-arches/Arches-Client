@@ -6,19 +6,19 @@
 #include <memory>
 #include <vector>
 
-class EnvironmentalTesting;  // forward declaration
+class EnvironmentalTesting; // forward declaration
 
 namespace arches::client {
 
 class EnvironmentalAdapter final : public AdapterBase {
-public:
+    public:
     EnvironmentalAdapter();
     ~EnvironmentalAdapter() override;
 
     std::string module_id() const override { return "environmental"; }
-    std::vector<hal::TestResult> run(int mode,
-                                      const std::vector<uint8_t>& config_bytes) override;
-private:
+    std::vector<hal::TestResult> run(int mode, const std::vector<uint8_t>& config_bytes) override;
+
+    private:
     std::unique_ptr<EnvironmentalTesting> hal_;
 };
 

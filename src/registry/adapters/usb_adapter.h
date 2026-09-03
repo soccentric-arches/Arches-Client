@@ -6,19 +6,19 @@
 #include <memory>
 #include <vector>
 
-class UsbTesting;  // forward declaration
+class UsbTesting; // forward declaration
 
 namespace arches::client {
 
 class UsbAdapter final : public AdapterBase {
-public:
+    public:
     UsbAdapter();
     ~UsbAdapter() override;
 
     std::string module_id() const override { return "usb"; }
-    std::vector<hal::TestResult> run(int mode,
-                                      const std::vector<uint8_t>& config_bytes) override;
-private:
+    std::vector<hal::TestResult> run(int mode, const std::vector<uint8_t>& config_bytes) override;
+
+    private:
     std::unique_ptr<UsbTesting> hal_;
 };
 

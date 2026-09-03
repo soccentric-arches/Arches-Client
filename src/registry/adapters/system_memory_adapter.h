@@ -5,19 +5,19 @@
 #include <memory>
 #include <vector>
 
-class SystemMemoryTesting;  // forward declaration
+class SystemMemoryTesting; // forward declaration
 
 namespace arches::client {
 
 class SystemMemoryAdapter final : public AdapterBase {
-public:
+    public:
     SystemMemoryAdapter();
     ~SystemMemoryAdapter() override;
 
     std::string module_id() const override { return "system_memory"; }
-    std::vector<hal::TestResult> run(int mode,
-                                      const std::vector<uint8_t>& config_bytes) override;
-private:
+    std::vector<hal::TestResult> run(int mode, const std::vector<uint8_t>& config_bytes) override;
+
+    private:
     std::unique_ptr<SystemMemoryTesting> hal_;
 };
 

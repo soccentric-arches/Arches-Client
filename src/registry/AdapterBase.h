@@ -21,7 +21,7 @@
 namespace arches::client {
 
 class AdapterBase {
-public:
+    public:
     virtual ~AdapterBase() = default;
 
     // Canonical module identifier (must match modules.yaml).
@@ -32,13 +32,13 @@ public:
     // Implementations MUST NOT set sequence or timestamp (runner stamps those).
     // config_bytes: serialized google.protobuf.Any containing the module Config.
     virtual std::vector<hal::TestResult> run(int mode,
-                                              const std::vector<uint8_t>& config_bytes) = 0;
+                                             const std::vector<uint8_t>& config_bytes) = 0;
 
     // Adapters cannot be copied.
-    AdapterBase(const AdapterBase&)            = delete;
+    AdapterBase(const AdapterBase&) = delete;
     AdapterBase& operator=(const AdapterBase&) = delete;
 
-protected:
+    protected:
     AdapterBase() = default;
 };
 

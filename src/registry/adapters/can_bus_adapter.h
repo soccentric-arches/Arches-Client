@@ -3,18 +3,18 @@
 #include <memory>
 #include <vector>
 
-class CanBusTesting;  // forward declaration
+class CanBusTesting; // forward declaration
 
 namespace arches::client {
 
 class CanBusAdapter final : public AdapterBase {
-public:
+    public:
     CanBusAdapter();
     ~CanBusAdapter() override;
     std::string module_id() const override { return "can_bus"; }
-    std::vector<hal::TestResult> run(int mode,
-                                      const std::vector<uint8_t>& config_bytes) override;
-private:
+    std::vector<hal::TestResult> run(int mode, const std::vector<uint8_t>& config_bytes) override;
+
+    private:
     std::unique_ptr<CanBusTesting> hal_;
 };
 

@@ -15,27 +15,25 @@ using namespace arches::stream;
 StreamClient::StreamClient(StreamClientConfig cfg, ServerMessageCb on_message)
     : cfg_(std::move(cfg)), on_message_(std::move(on_message)) {}
 
-StreamClient::~StreamClient() {
-    stop();
-}
+StreamClient::~StreamClient() { stop(); }
 
 void StreamClient::start() {
     running_.store(true);
-    thread_ = std::thread([this]{ stream_loop(); });
+    thread_ = std::thread([this] { stream_loop(); });
 }
 
 void StreamClient::stop() {
     running_.store(false);
-    if (thread_.joinable()) thread_.join();
+    if (thread_.joinable())
+        thread_.join();
     connected_.store(false);
 }
 
-bool StreamClient::is_connected() const noexcept {
-    return connected_.load();
-}
+bool StreamClient::is_connected() const noexcept { return connected_.load(); }
 
 bool StreamClient::send(ClientMessage msg) {
-    if (!connected_.load()) return false;
+    if (!connected_.load())
+        return false;
     std::lock_guard<std::mutex> lk(send_queue_mtx_);
     send_queue_.push(std::move(msg));
     return true;
@@ -49,7 +47,8 @@ void StreamClient::stream_loop() {
     std::chrono::seconds backoff{1};
     while (running_.load()) {
         run_stream();
-        if (!running_.load()) break;
+        if (!running_.load())
+            break;
         connected_.store(false);
         spdlog::warn("stream: disconnected, retry in {}s", backoff.count());
         std::this_thread::sleep_for(backoff);
@@ -58,22 +57,21 @@ void StreamClient::stream_loop() {
 }
 
 void StreamClient::run_stream() {
-    const std::string target =
-        cfg_.server_address + ":" + std::to_string(cfg_.server_port);
+    const std::string target = cfg_.server_address + ":" + std::to_string(cfg_.server_port);
 
     std::shared_ptr<grpc::ChannelCredentials> creds;
     if (cfg_.tls_ca.empty()) {
         creds = grpc::InsecureChannelCredentials();
     } else {
         grpc::SslCredentialsOptions ssl;
-        ssl.pem_root_certs  = cfg_.tls_ca;
-        ssl.pem_cert_chain  = cfg_.tls_cert;
+        ssl.pem_root_certs = cfg_.tls_ca;
+        ssl.pem_cert_chain = cfg_.tls_cert;
         ssl.pem_private_key = cfg_.tls_key;
         creds = grpc::SslCredentials(ssl);
     }
 
     auto channel = grpc::CreateChannel(target, creds);
-    auto stub    = ClientService::NewStub(channel);
+    auto stub = ClientService::NewStub(channel);
 
     grpc::ClientContext ctx;
     auto stream = stub->Connect(&ctx);
@@ -87,7 +85,7 @@ void StreamClient::run_stream() {
     spdlog::info("stream: connected to {}", target);
 
     // Reader thread
-    std::thread reader([&]{
+    std::thread reader([&] {
         ServerMessage msg;
         while (stream->Read(&msg)) {
             try {
@@ -120,8 +118,7 @@ done:
     stream->WritesDone();
     auto status = stream->Finish();
     if (!status.ok()) {
-        spdlog::warn("stream: finished with error {}: {}",
-                     static_cast<int>(status.error_code()),
+        spdlog::warn("stream: finished with error {}: {}", static_cast<int>(status.error_code()),
                      status.error_message());
     }
     reader.join();

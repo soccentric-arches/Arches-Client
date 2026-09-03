@@ -9,15 +9,17 @@
 
 namespace arches::client {
 
-WatchdogAndResetAdapter::WatchdogAndResetAdapter() : hal_(std::make_unique<WatchdogAndResetTesting>()) {}
+WatchdogAndResetAdapter::WatchdogAndResetAdapter()
+    : hal_(std::make_unique<WatchdogAndResetTesting>()) {}
 WatchdogAndResetAdapter::~WatchdogAndResetAdapter() = default;
 
-std::vector<hal::TestResult> WatchdogAndResetAdapter::run(int mode,
-                                                      const std::vector<uint8_t>& config_bytes) {
+std::vector<hal::TestResult>
+WatchdogAndResetAdapter::run(int mode, const std::vector<uint8_t>& config_bytes) {
     auto test_names = hal_bridge::resolve_test_names(config_bytes, hal_->getAvailableTests());
-    auto results    = hal_->runSelectedTests(test_names);
+    auto results = hal_->runSelectedTests(test_names);
     for (auto& r : results) {
-        if (r.module_id.empty()) r.module_id = "watchdog_and_reset";
+        if (r.module_id.empty())
+            r.module_id = "watchdog_and_reset";
     }
     if (mode == 3 /* MONITORING */) {
         for (auto& r : results) {
@@ -26,11 +28,11 @@ std::vector<hal::TestResult> WatchdogAndResetAdapter::run(int mode,
         }
     }
     if (mode == 4 /* EVENT_BASED */) {
-        bool event = std::any_of(results.begin(), results.end(),
-            [](const hal::TestResult& r) {
-                return r.output.status != hal::Status::PASS;
-            });
-        if (!event) return {};
+        bool event = std::any_of(results.begin(), results.end(), [](const hal::TestResult& r) {
+            return r.output.status != hal::Status::PASS;
+        });
+        if (!event)
+            return {};
     }
     return results;
 }

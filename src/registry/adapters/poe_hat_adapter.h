@@ -6,19 +6,19 @@
 #include <memory>
 #include <vector>
 
-class PoeHatTesting;  // forward declaration
+class PoeHatTesting; // forward declaration
 
 namespace arches::client {
 
 class PoeHatAdapter final : public AdapterBase {
-public:
+    public:
     PoeHatAdapter();
     ~PoeHatAdapter() override;
 
     std::string module_id() const override { return "poe_hat"; }
-    std::vector<hal::TestResult> run(int mode,
-                                      const std::vector<uint8_t>& config_bytes) override;
-private:
+    std::vector<hal::TestResult> run(int mode, const std::vector<uint8_t>& config_bytes) override;
+
+    private:
     std::unique_ptr<PoeHatTesting> hal_;
 };
 

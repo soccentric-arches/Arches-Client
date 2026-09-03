@@ -6,19 +6,19 @@
 #include <memory>
 #include <vector>
 
-class WatchdogAndResetTesting;  // forward declaration
+class WatchdogAndResetTesting; // forward declaration
 
 namespace arches::client {
 
 class WatchdogAndResetAdapter final : public AdapterBase {
-public:
+    public:
     WatchdogAndResetAdapter();
     ~WatchdogAndResetAdapter() override;
 
     std::string module_id() const override { return "watchdog_and_reset"; }
-    std::vector<hal::TestResult> run(int mode,
-                                      const std::vector<uint8_t>& config_bytes) override;
-private:
+    std::vector<hal::TestResult> run(int mode, const std::vector<uint8_t>& config_bytes) override;
+
+    private:
     std::unique_ptr<WatchdogAndResetTesting> hal_;
 };
 

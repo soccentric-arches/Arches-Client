@@ -3,18 +3,18 @@
 #include <memory>
 #include <vector>
 
-class AnalogInputTesting;  // forward declaration
+class AnalogInputTesting; // forward declaration
 
 namespace arches::client {
 
 class AnalogInputAdapter final : public AdapterBase {
-public:
+    public:
     AnalogInputAdapter();
     ~AnalogInputAdapter() override;
     std::string module_id() const override { return "analog_input"; }
-    std::vector<hal::TestResult> run(int mode,
-                                      const std::vector<uint8_t>& config_bytes) override;
-private:
+    std::vector<hal::TestResult> run(int mode, const std::vector<uint8_t>& config_bytes) override;
+
+    private:
     std::unique_ptr<AnalogInputTesting> hal_;
 };
 

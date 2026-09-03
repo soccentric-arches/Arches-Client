@@ -23,29 +23,28 @@ using Bytes = std::vector<uint8_t>;
 
 struct BatchRow {
     std::string run_id;
-    int64_t     batch_seq   = 0;
-    int64_t     created_at  = 0;  // nanoseconds since epoch
-    Bytes       payload;
+    int64_t batch_seq = 0;
+    int64_t created_at = 0; // nanoseconds since epoch
+    Bytes payload;
 };
 
 struct LogRow {
     std::string run_id;
-    int64_t     batch_seq   = 0;
-    int64_t     created_at  = 0;
-    Bytes       payload;
+    int64_t batch_seq = 0;
+    int64_t created_at = 0;
+    Bytes payload;
 };
 
 class Spool {
-public:
+    public:
     // Opens (and creates if necessary) the spool database at the given path.
     // Configures WAL mode, synchronous=NORMAL, and applies the schema.
     // Throws std::runtime_error on failure.
-    explicit Spool(const std::string& path,
-                   uint64_t result_cap_bytes = 2ULL * 1024 * 1024 * 1024,
-                   uint64_t log_cap_bytes    = 500ULL * 1024 * 1024);
+    explicit Spool(const std::string& path, uint64_t result_cap_bytes = 2ULL * 1024 * 1024 * 1024,
+                   uint64_t log_cap_bytes = 500ULL * 1024 * 1024);
     ~Spool();
 
-    Spool(const Spool&)            = delete;
+    Spool(const Spool&) = delete;
     Spool& operator=(const Spool&) = delete;
 
     // ----------------------------------------------------------------
@@ -53,8 +52,7 @@ public:
     // ----------------------------------------------------------------
 
     // Insert a new batch row.  Returns false if the spool cap would be exceeded.
-    bool insert_batch(const std::string& run_id, int64_t batch_seq,
-                      const Bytes& payload);
+    bool insert_batch(const std::string& run_id, int64_t batch_seq, const Bytes& payload);
 
     // Mark a batch as acked.
     void ack_batch(const std::string& run_id, int64_t batch_seq);
@@ -70,8 +68,7 @@ public:
     // Logs
     // ----------------------------------------------------------------
 
-    bool insert_log(const std::string& run_id, int64_t batch_seq,
-                    const Bytes& payload);
+    bool insert_log(const std::string& run_id, int64_t batch_seq, const Bytes& payload);
 
     void ack_log(const std::string& run_id, int64_t batch_seq);
 
@@ -85,10 +82,10 @@ public:
     // ----------------------------------------------------------------
 
     uint64_t result_bytes_used() const;
-    uint64_t log_bytes_used()    const;
+    uint64_t log_bytes_used() const;
 
     bool result_spool_full() const;
-    bool log_spool_full()    const;
+    bool log_spool_full() const;
 
     // ----------------------------------------------------------------
     // Active run registry
@@ -101,8 +98,8 @@ public:
 
     struct RunStateRow {
         std::string run_id;
-        int         state      = 0;
-        int64_t     last_seq   = 0;
+        int state = 0;
+        int64_t last_seq = 0;
     };
     std::vector<RunStateRow> all_run_states() const;
 
@@ -125,18 +122,18 @@ public:
     // This is called automatically by the constructor.
     static bool quarantine_if_legacy(const std::string& path);
 
-private:
-    sqlite3*         db_         = nullptr;
+    private:
+    sqlite3* db_ = nullptr;
     mutable std::mutex mtx_;
-    uint64_t         result_cap_;
-    uint64_t         log_cap_;
-    std::string      path_;  // stored for quarantine reporting
+    uint64_t result_cap_;
+    uint64_t log_cap_;
+    std::string path_; // stored for quarantine reporting
 
     // Unlocked capacity helpers — caller must hold mtx_.
     uint64_t result_bytes_used_locked() const;
-    uint64_t log_bytes_used_locked()    const;
-    bool     result_spool_full_locked() const;
-    bool     log_spool_full_locked()    const;
+    uint64_t log_bytes_used_locked() const;
+    bool result_spool_full_locked() const;
+    bool log_spool_full_locked() const;
 
     void exec(const char* sql);
     void apply_schema();

@@ -6,19 +6,19 @@
 #include <memory>
 #include <vector>
 
-class StorageTesting;  // forward declaration
+class StorageTesting; // forward declaration
 
 namespace arches::client {
 
 class StorageAdapter final : public AdapterBase {
-public:
+    public:
     StorageAdapter();
     ~StorageAdapter() override;
 
     std::string module_id() const override { return "storage"; }
-    std::vector<hal::TestResult> run(int mode,
-                                      const std::vector<uint8_t>& config_bytes) override;
-private:
+    std::vector<hal::TestResult> run(int mode, const std::vector<uint8_t>& config_bytes) override;
+
+    private:
     std::unique_ptr<StorageTesting> hal_;
 };
 

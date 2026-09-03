@@ -23,12 +23,12 @@ void on_signal(int sig) {
 }
 
 void install_signal_handlers() {
-    struct sigaction sa{};
+    struct sigaction sa {};
     sa.sa_handler = on_signal;
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
     sigaction(SIGTERM, &sa, nullptr);
-    sigaction(SIGINT,  &sa, nullptr);
+    sigaction(SIGINT, &sa, nullptr);
     // Ignore SIGPIPE — gRPC connections drop without warning and we handle
     // reconnection ourselves; a broken-pipe crash would be wrong.
     signal(SIGPIPE, SIG_IGN);
@@ -56,8 +56,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    spdlog::info("arches-client v{} starting, config={}",
-        ARCHES_CLIENT_VERSION, config_path);
+    spdlog::info("arches-client v{} starting, config={}", ARCHES_CLIENT_VERSION, config_path);
 
     install_signal_handlers();
 

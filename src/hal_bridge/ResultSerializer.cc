@@ -27,15 +27,18 @@ namespace arches::client::hal_bridge {
 
 hal::common::ExecutionMode execution_mode_from_int(int mode_int) {
     switch (mode_int) {
-        case 1: return hal::common::SINGLE_SHOT;
-        case 2: return hal::common::LONG_TERM;
-        case 3: return hal::common::MONITORING;
-        case 4: return hal::common::EVENT_BASED;
-        default:
-            throw std::invalid_argument(
-                "execution_mode_from_int: unmapped mode value " +
-                std::to_string(mode_int) +
-                " (valid range: 1=SINGLE_SHOT, 2=LONG_TERM, 3=MONITORING, 4=EVENT_BASED)");
+    case 1:
+        return hal::common::SINGLE_SHOT;
+    case 2:
+        return hal::common::LONG_TERM;
+    case 3:
+        return hal::common::MONITORING;
+    case 4:
+        return hal::common::EVENT_BASED;
+    default:
+        throw std::invalid_argument(
+            "execution_mode_from_int: unmapped mode value " + std::to_string(mode_int) +
+            " (valid range: 1=SINGLE_SHOT, 2=LONG_TERM, 3=MONITORING, 4=EVENT_BASED)");
     }
 }
 
@@ -46,12 +49,18 @@ hal::common::ExecutionMode execution_mode_from_int(int mode_int) {
 
 hal::common::TestStatus to_proto(hal::Status s) {
     switch (s) {
-        case hal::Status::PASS:    return hal::common::TEST_STATUS_PASS;
-        case hal::Status::FAIL:    return hal::common::TEST_STATUS_FAIL;
-        case hal::Status::ERROR:   return hal::common::TEST_STATUS_ERROR;
-        case hal::Status::TIMEOUT: return hal::common::TEST_STATUS_TIMEOUT;
-        case hal::Status::ABORTED: return hal::common::TEST_STATUS_ABORTED;
-        case hal::Status::SKIPPED: return hal::common::TEST_STATUS_SKIPPED;
+    case hal::Status::PASS:
+        return hal::common::TEST_STATUS_PASS;
+    case hal::Status::FAIL:
+        return hal::common::TEST_STATUS_FAIL;
+    case hal::Status::ERROR:
+        return hal::common::TEST_STATUS_ERROR;
+    case hal::Status::TIMEOUT:
+        return hal::common::TEST_STATUS_TIMEOUT;
+    case hal::Status::ABORTED:
+        return hal::common::TEST_STATUS_ABORTED;
+    case hal::Status::SKIPPED:
+        return hal::common::TEST_STATUS_SKIPPED;
     }
     // Unreachable — satisfies MSVC/GCC in case compiler doesn't see exhaustion.
     return hal::common::TEST_STATUS_ERROR;
@@ -59,18 +68,24 @@ hal::common::TestStatus to_proto(hal::Status s) {
 
 hal::Status from_proto(hal::common::TestStatus s) {
     switch (s) {
-        case hal::common::TEST_STATUS_PASS:    return hal::Status::PASS;
-        case hal::common::TEST_STATUS_FAIL:    return hal::Status::FAIL;
-        case hal::common::TEST_STATUS_ERROR:   return hal::Status::ERROR;
-        case hal::common::TEST_STATUS_TIMEOUT: return hal::Status::TIMEOUT;
-        case hal::common::TEST_STATUS_ABORTED: return hal::Status::ABORTED;
-        case hal::common::TEST_STATUS_SKIPPED: return hal::Status::SKIPPED;
-        case hal::common::TEST_STATUS_UNSPECIFIED:
-        default:
-            // Spec: UNSPECIFIED → ERROR with explanatory message
-            // error_message is set at the TestOutput/TestResult level; here we
-            // only map the enum.
-            return hal::Status::ERROR;
+    case hal::common::TEST_STATUS_PASS:
+        return hal::Status::PASS;
+    case hal::common::TEST_STATUS_FAIL:
+        return hal::Status::FAIL;
+    case hal::common::TEST_STATUS_ERROR:
+        return hal::Status::ERROR;
+    case hal::common::TEST_STATUS_TIMEOUT:
+        return hal::Status::TIMEOUT;
+    case hal::common::TEST_STATUS_ABORTED:
+        return hal::Status::ABORTED;
+    case hal::common::TEST_STATUS_SKIPPED:
+        return hal::Status::SKIPPED;
+    case hal::common::TEST_STATUS_UNSPECIFIED:
+    default:
+        // Spec: UNSPECIFIED → ERROR with explanatory message
+        // error_message is set at the TestOutput/TestResult level; here we
+        // only map the enum.
+        return hal::Status::ERROR;
     }
 }
 
@@ -80,24 +95,32 @@ hal::Status from_proto(hal::common::TestStatus s) {
 
 hal::common::TestSeverity to_proto(hal::Severity s) {
     switch (s) {
-        case hal::Severity::INFO:     return hal::common::TEST_SEVERITY_INFO;
-        case hal::Severity::WARNING:  return hal::common::TEST_SEVERITY_WARNING;
-        case hal::Severity::ERROR:    return hal::common::TEST_SEVERITY_ERROR;
-        case hal::Severity::CRITICAL: return hal::common::TEST_SEVERITY_CRITICAL;
+    case hal::Severity::INFO:
+        return hal::common::TEST_SEVERITY_INFO;
+    case hal::Severity::WARNING:
+        return hal::common::TEST_SEVERITY_WARNING;
+    case hal::Severity::ERROR:
+        return hal::common::TEST_SEVERITY_ERROR;
+    case hal::Severity::CRITICAL:
+        return hal::common::TEST_SEVERITY_CRITICAL;
     }
     return hal::common::TEST_SEVERITY_INFO;
 }
 
 hal::Severity from_proto(hal::common::TestSeverity s) {
     switch (s) {
-        case hal::common::TEST_SEVERITY_INFO:     return hal::Severity::INFO;
-        case hal::common::TEST_SEVERITY_WARNING:  return hal::Severity::WARNING;
-        case hal::common::TEST_SEVERITY_ERROR:    return hal::Severity::ERROR;
-        case hal::common::TEST_SEVERITY_CRITICAL: return hal::Severity::CRITICAL;
-        case hal::common::TEST_SEVERITY_UNSPECIFIED:
-        default:
-            // Spec: UNSPECIFIED → INFO
-            return hal::Severity::INFO;
+    case hal::common::TEST_SEVERITY_INFO:
+        return hal::Severity::INFO;
+    case hal::common::TEST_SEVERITY_WARNING:
+        return hal::Severity::WARNING;
+    case hal::common::TEST_SEVERITY_ERROR:
+        return hal::Severity::ERROR;
+    case hal::common::TEST_SEVERITY_CRITICAL:
+        return hal::Severity::CRITICAL;
+    case hal::common::TEST_SEVERITY_UNSPECIFIED:
+    default:
+        // Spec: UNSPECIFIED → INFO
+        return hal::Severity::INFO;
     }
 }
 
@@ -107,27 +130,38 @@ hal::Severity from_proto(hal::common::TestSeverity s) {
 
 hal::common::TypedValue to_proto(const hal::Value& v) {
     hal::common::TypedValue tv;
-    std::visit([&tv](auto&& arg) {
-        using T = std::decay_t<decltype(arg)>;
-        if constexpr (std::is_same_v<T, bool>)        tv.set_bool_value(arg);
-        else if constexpr (std::is_same_v<T, int64_t>) tv.set_int_value(arg);
-        else if constexpr (std::is_same_v<T, double>)  tv.set_double_value(arg);
-        else if constexpr (std::is_same_v<T, std::string>) tv.set_string_value(arg);
-    }, v);
+    std::visit(
+        [&tv](auto&& arg) {
+            using T = std::decay_t<decltype(arg)>;
+            if constexpr (std::is_same_v<T, bool>)
+                tv.set_bool_value(arg);
+            else if constexpr (std::is_same_v<T, int64_t>)
+                tv.set_int_value(arg);
+            else if constexpr (std::is_same_v<T, double>)
+                tv.set_double_value(arg);
+            else if constexpr (std::is_same_v<T, std::string>)
+                tv.set_string_value(arg);
+        },
+        v);
     return tv;
 }
 
 hal::Value from_proto(const hal::common::TypedValue& tv, const std::string& key) {
     switch (tv.value_case()) {
-        case hal::common::TypedValue::kBoolValue:   return tv.bool_value();
-        case hal::common::TypedValue::kIntValue:    return tv.int_value();
-        case hal::common::TypedValue::kDoubleValue: return tv.double_value();
-        case hal::common::TypedValue::kStringValue: return tv.string_value();
-        case hal::common::TypedValue::VALUE_NOT_SET:
-        default:
-            spdlog::warn("[SERIALIZER-FALLBACK] TypedValue VALUE_NOT_SET for key='{}'; "
-                         "falling back to empty string", key);
-            return std::string{};
+    case hal::common::TypedValue::kBoolValue:
+        return tv.bool_value();
+    case hal::common::TypedValue::kIntValue:
+        return tv.int_value();
+    case hal::common::TypedValue::kDoubleValue:
+        return tv.double_value();
+    case hal::common::TypedValue::kStringValue:
+        return tv.string_value();
+    case hal::common::TypedValue::VALUE_NOT_SET:
+    default:
+        spdlog::warn("[SERIALIZER-FALLBACK] TypedValue VALUE_NOT_SET for key='{}'; "
+                     "falling back to empty string",
+                     key);
+        return std::string{};
     }
 }
 
@@ -137,8 +171,7 @@ hal::Value from_proto(const hal::common::TypedValue& tv, const std::string& key)
 
 google::protobuf::Timestamp to_proto(std::chrono::system_clock::time_point tp) {
     // std::chrono::system_clock epoch == Unix epoch (C++20 guarantees, de-facto C++17).
-    auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
-                  tp.time_since_epoch());
+    auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(tp.time_since_epoch());
     int64_t total_ns = ns.count();
     google::protobuf::Timestamp ts;
     ts.set_seconds(total_ns / 1'000'000'000LL);
@@ -147,10 +180,8 @@ google::protobuf::Timestamp to_proto(std::chrono::system_clock::time_point tp) {
 }
 
 std::chrono::system_clock::time_point from_proto(const google::protobuf::Timestamp& ts) {
-    int64_t total_ns =
-        ts.seconds() * 1'000'000'000LL + static_cast<int64_t>(ts.nanos());
-    return std::chrono::system_clock::time_point(
-        std::chrono::nanoseconds(total_ns));
+    int64_t total_ns = ts.seconds() * 1'000'000'000LL + static_cast<int64_t>(ts.nanos());
+    return std::chrono::system_clock::time_point(std::chrono::nanoseconds(total_ns));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -160,8 +191,7 @@ std::chrono::system_clock::time_point from_proto(const google::protobuf::Timesta
 
 google::protobuf::Duration to_proto(std::chrono::nanoseconds d) {
     if (d.count() < 0) {
-        spdlog::warn("[SERIALIZER-CLAMP] negative duration {}ns clamped to zero",
-                     d.count());
+        spdlog::warn("[SERIALIZER-CLAMP] negative duration {}ns clamped to zero", d.count());
         d = std::chrono::nanoseconds{0};
     }
     int64_t total_ns = d.count();
@@ -172,8 +202,7 @@ google::protobuf::Duration to_proto(std::chrono::nanoseconds d) {
 }
 
 std::chrono::nanoseconds from_proto(const google::protobuf::Duration& dur) {
-    int64_t total_ns =
-        dur.seconds() * 1'000'000'000LL + static_cast<int64_t>(dur.nanos());
+    int64_t total_ns = dur.seconds() * 1'000'000'000LL + static_cast<int64_t>(dur.nanos());
     return std::chrono::nanoseconds(total_ns);
 }
 
@@ -181,32 +210,29 @@ std::chrono::nanoseconds from_proto(const google::protobuf::Duration& dur) {
 // Map helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-void copy_reason_to_proto(
-    const std::map<std::string, std::string>& src,
-    google::protobuf::Map<std::string, std::string>* dst)
-{
-    for (const auto& [k, v] : src) (*dst)[k] = v;
+void copy_reason_to_proto(const std::map<std::string, std::string>& src,
+                          google::protobuf::Map<std::string, std::string>* dst) {
+    for (const auto& [k, v] : src)
+        (*dst)[k] = v;
 }
 
-void copy_value_map_to_proto(
-    const std::map<std::string, hal::Value>& src,
-    google::protobuf::Map<std::string, hal::common::TypedValue>* dst)
-{
-    for (const auto& [k, v] : src) (*dst)[k] = to_proto(v);
+void copy_value_map_to_proto(const std::map<std::string, hal::Value>& src,
+                             google::protobuf::Map<std::string, hal::common::TypedValue>* dst) {
+    for (const auto& [k, v] : src)
+        (*dst)[k] = to_proto(v);
 }
 
-void copy_reason_from_proto(
-    const google::protobuf::Map<std::string, std::string>& src,
-    std::map<std::string, std::string>& dst)
-{
-    for (const auto& [k, v] : src) dst[k] = v;
+void copy_reason_from_proto(const google::protobuf::Map<std::string, std::string>& src,
+                            std::map<std::string, std::string>& dst) {
+    for (const auto& [k, v] : src)
+        dst[k] = v;
 }
 
 void copy_value_map_from_proto(
     const google::protobuf::Map<std::string, hal::common::TypedValue>& src,
-    std::map<std::string, hal::Value>& dst)
-{
-    for (const auto& [k, v] : src) dst[k] = from_proto(v, k);
+    std::map<std::string, hal::Value>& dst) {
+    for (const auto& [k, v] : src)
+        dst[k] = from_proto(v, k);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -218,21 +244,21 @@ hal::common::TestOutput to_proto(const hal::TestOutput& out) {
     p.set_status(to_proto(out.status));
     p.set_severity(to_proto(out.severity));
     copy_reason_to_proto(out.reason, p.mutable_reason());
-    copy_value_map_to_proto(out.metrics,    p.mutable_metrics());
+    copy_value_map_to_proto(out.metrics, p.mutable_metrics());
     copy_value_map_to_proto(out.monitoring, p.mutable_monitoring());
-    copy_value_map_to_proto(out.event,      p.mutable_event());
+    copy_value_map_to_proto(out.event, p.mutable_event());
     p.set_error_message(out.error_message);
     return p;
 }
 
 hal::TestOutput from_proto(const hal::common::TestOutput& p) {
     hal::TestOutput out;
-    out.status   = from_proto(p.status());
+    out.status = from_proto(p.status());
     out.severity = from_proto(p.severity());
     copy_reason_from_proto(p.reason(), out.reason);
-    copy_value_map_from_proto(p.metrics(),    out.metrics);
+    copy_value_map_from_proto(p.metrics(), out.metrics);
     copy_value_map_from_proto(p.monitoring(), out.monitoring);
-    copy_value_map_from_proto(p.event(),      out.event);
+    copy_value_map_from_proto(p.event(), out.event);
     out.error_message = p.error_message();
     // Spec: UNSPECIFIED status in inbound proto → ERROR + explanatory message
     if (p.status() == hal::common::TEST_STATUS_UNSPECIFIED) {
@@ -254,8 +280,8 @@ hal::common::TestResult to_proto(const hal::TestResult& r, int depth) {
     p.set_name(r.name);
     p.set_sequence(r.sequence);
     *p.mutable_timestamp() = to_proto(r.timestamp);
-    *p.mutable_duration()  = to_proto(r.duration);
-    *p.mutable_output()    = to_proto(r.output);
+    *p.mutable_duration() = to_proto(r.duration);
+    *p.mutable_output() = to_proto(r.output);
 
     if (!r.subtests.empty()) {
         if (depth >= kMaxSubtestDepth) {
@@ -265,9 +291,8 @@ hal::common::TestResult to_proto(const hal::TestResult& r, int depth) {
             err->set_test_id("__subtest_depth_exceeded__");
             err->set_name("subtest tree truncated");
             err->mutable_output()->set_status(hal::common::TEST_STATUS_ERROR);
-            err->mutable_output()->set_error_message(
-                "subtest recursion exceeded depth limit of " +
-                std::to_string(kMaxSubtestDepth));
+            err->mutable_output()->set_error_message("subtest recursion exceeded depth limit of " +
+                                                     std::to_string(kMaxSubtestDepth));
         } else {
             for (const auto& sub : r.subtests)
                 *p.add_subtests() = to_proto(sub, depth + 1);
@@ -279,12 +304,12 @@ hal::common::TestResult to_proto(const hal::TestResult& r, int depth) {
 hal::TestResult from_proto(const hal::common::TestResult& p, int depth) {
     hal::TestResult r;
     r.module_id = p.module_id();
-    r.test_id   = p.test_id();
-    r.name      = p.name();
-    r.sequence  = p.sequence();
+    r.test_id = p.test_id();
+    r.name = p.name();
+    r.sequence = p.sequence();
     r.timestamp = from_proto(p.timestamp());
-    r.duration  = from_proto(p.duration());
-    r.output    = from_proto(p.output());
+    r.duration = from_proto(p.duration());
+    r.output = from_proto(p.output());
 
     if (p.subtests_size() > 0) {
         if (depth >= kMaxSubtestDepth) {
@@ -321,10 +346,10 @@ struct ParsedAny {
 
 ParsedAny parse_any_to_message(const std::vector<uint8_t>& any_bytes) {
     ParsedAny out;
-    if (any_bytes.empty()) return out;
+    if (any_bytes.empty())
+        return out;
     google::protobuf::Any any;
-    if (!any.ParseFromArray(any_bytes.data(),
-                              static_cast<int>(any_bytes.size())))
+    if (!any.ParseFromArray(any_bytes.data(), static_cast<int>(any_bytes.size())))
         return out;
 
     // type_url is "type.googleapis.com/<full.message.Name>"
@@ -332,13 +357,14 @@ ParsedAny parse_any_to_message(const std::vector<uint8_t>& any_bytes) {
     if (auto slash = type_name.find('/'); slash != std::string::npos)
         type_name = type_name.substr(slash + 1);
 
-    out.desc = google::protobuf::DescriptorPool::generated_pool()
-                   ->FindMessageTypeByName(type_name);
-    if (!out.desc) return out;
+    out.desc = google::protobuf::DescriptorPool::generated_pool()->FindMessageTypeByName(type_name);
+    if (!out.desc)
+        return out;
 
     static google::protobuf::DynamicMessageFactory factory;
     const google::protobuf::Message* prototype = factory.GetPrototype(out.desc);
-    if (!prototype) return out;
+    if (!prototype)
+        return out;
     out.msg = std::unique_ptr<google::protobuf::Message>(prototype->New());
     if (!out.msg->ParseFromString(any.value())) {
         out.msg.reset();
@@ -352,7 +378,8 @@ ParsedAny parse_any_to_message(const std::vector<uint8_t>& any_bytes) {
 std::vector<std::string> extract_test_names(const std::vector<uint8_t>& any_bytes) {
     std::vector<std::string> out;
     auto parsed = parse_any_to_message(any_bytes);
-    if (!parsed.ok()) return out;
+    if (!parsed.ok())
+        return out;
 
     // Every implemented-module Config has `repeated string test_names` (field 1).
     // Look it up by name and require it be a repeated string.
@@ -370,16 +397,18 @@ std::vector<std::string> extract_test_names(const std::vector<uint8_t>& any_byte
 }
 
 std::vector<std::string> resolve_test_names(const std::vector<uint8_t>& any_bytes,
-                                              const std::vector<std::string>& available) {
+                                            const std::vector<std::string>& available) {
     auto wanted = extract_test_names(any_bytes);
-    if (wanted.empty()) return available;  // no selection → run all available
+    if (wanted.empty())
+        return available; // no selection → run all available
 
     // Validate-and-clamp: keep only requested tests the HAL actually offers.
     std::unordered_set<std::string> avail(available.begin(), available.end());
     std::vector<std::string> selected;
     selected.reserve(wanted.size());
     for (auto& t : wanted)
-        if (avail.count(t)) selected.push_back(std::move(t));
+        if (avail.count(t))
+            selected.push_back(std::move(t));
 
     // If the config named tests the HAL doesn't offer, fall back to all
     // available rather than running nothing.
@@ -396,18 +425,20 @@ std::string module_result_type_url(const std::string& module_id) {
     return "type.googleapis.com/hal.modules." + module_id + ".Result";
 }
 
-bool pack_module_result(const std::string& module_id,
-                        const std::vector<hal::TestResult>& results,
+bool pack_module_result(const std::string& module_id, const std::vector<hal::TestResult>& results,
                         google::protobuf::Any* out) {
-    if (!out) return false;
+    if (!out)
+        return false;
     const std::string type_name = "hal.modules." + module_id + ".Result";
-    const auto* desc = google::protobuf::DescriptorPool::generated_pool()
-                           ->FindMessageTypeByName(type_name);
-    if (!desc) return false;  // unknown / proto-only module → caller falls back
+    const auto* desc =
+        google::protobuf::DescriptorPool::generated_pool()->FindMessageTypeByName(type_name);
+    if (!desc)
+        return false; // unknown / proto-only module → caller falls back
 
     static google::protobuf::DynamicMessageFactory factory;
     const auto* prototype = factory.GetPrototype(desc);
-    if (!prototype) return false;
+    if (!prototype)
+        return false;
     auto msg = std::unique_ptr<google::protobuf::Message>(prototype->New());
     const auto* refl = msg->GetReflection();
 

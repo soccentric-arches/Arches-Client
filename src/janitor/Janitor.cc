@@ -2,8 +2,8 @@
 
 #include "client_service.pb.h"
 
-#include <spdlog/spdlog.h>
 #include <chrono>
+#include <spdlog/spdlog.h>
 
 using namespace arches::stream;
 
@@ -12,18 +12,17 @@ namespace arches::client {
 Janitor::Janitor(Spool& spool, StreamClient& stream, JanitorConfig cfg)
     : spool_(spool), stream_(stream), cfg_(std::move(cfg)) {}
 
-Janitor::~Janitor() {
-    stop();
-}
+Janitor::~Janitor() { stop(); }
 
 void Janitor::start() {
     running_.store(true);
-    thread_ = std::thread([this]{ janitor_loop(); });
+    thread_ = std::thread([this] { janitor_loop(); });
 }
 
 void Janitor::stop() {
     running_.store(false);
-    if (thread_.joinable()) thread_.join();
+    if (thread_.joinable())
+        thread_.join();
 }
 
 void Janitor::janitor_loop() {
@@ -42,8 +41,7 @@ void Janitor::sweep() {
     using sc = std::chrono::system_clock;
 
     auto cutoff = sc::now() - cfg_.retention;
-    int64_t cutoff_ns = std::chrono::duration_cast<ns>(
-        cutoff.time_since_epoch()).count();
+    int64_t cutoff_ns = std::chrono::duration_cast<ns>(cutoff.time_since_epoch()).count();
 
     spool_.purge_acked(cutoff_ns);
 

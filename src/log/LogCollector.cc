@@ -4,10 +4,10 @@
 
 #include <spdlog/spdlog.h>
 
-#include <fcntl.h>
 #include <chrono>
 #include <cstdio>
 #include <cstring>
+#include <fcntl.h>
 #include <fstream>
 #include <mutex>
 
@@ -19,22 +19,20 @@ namespace arches::client {
 // ctor / dtor
 // ---------------------------------------------------------------------------
 
-LogCollector::LogCollector(Spool& spool, StreamClient& stream,
-                             LogCollectorConfig cfg)
+LogCollector::LogCollector(Spool& spool, StreamClient& stream, LogCollectorConfig cfg)
     : spool_(spool), stream_(stream), cfg_(std::move(cfg)) {}
 
-LogCollector::~LogCollector() {
-    stop();
-}
+LogCollector::~LogCollector() { stop(); }
 
 void LogCollector::start() {
     running_.store(true);
-    thread_ = std::thread([this]{ collect_loop(); });
+    thread_ = std::thread([this] { collect_loop(); });
 }
 
 void LogCollector::stop() {
     running_.store(false);
-    if (thread_.joinable()) thread_.join();
+    if (thread_.joinable())
+        thread_.join();
 }
 
 void LogCollector::set_run_id(const std::string& run_id) {
@@ -48,8 +46,7 @@ void LogCollector::set_run_id(const std::string& run_id) {
 
 void LogCollector::collect_loop() {
     using clock = std::chrono::steady_clock;
-    auto next_flush = clock::now() +
-                      std::chrono::milliseconds(cfg_.flush_interval_ms);
+    auto next_flush = clock::now() + std::chrono::milliseconds(cfg_.flush_interval_ms);
 
     while (running_.load()) {
         std::this_thread::sleep_until(next_flush);
@@ -67,7 +64,8 @@ void LogCollector::collect_loop() {
 void LogCollector::flush_kmsg() {
     // Open non-blocking so we don't stall on empty ring buffer
     FILE* f = fopen("/dev/kmsg", "r");
-    if (!f) return;
+    if (!f)
+        return;
 
     // Set non-blocking
     int fd = fileno(f);
@@ -80,15 +78,20 @@ void LogCollector::flush_kmsg() {
     char buf[4096];
     while (fgets(buf, sizeof(buf), f)) {
         size_t len = strlen(buf);
-        if (len > 0 && buf[len-1] == '\n') buf[len-1] = '\0';
+        if (len > 0 && buf[len - 1] == '\n')
+            buf[len - 1] = '\0';
         lines.emplace_back(buf);
-        if (lines.size() >= cfg_.batch_max_lines) break;
+        if (lines.size() >= cfg_.batch_max_lines)
+            break;
     }
     fclose(f);
 
     if (!lines.empty()) {
         std::string rid;
-        { std::lock_guard<std::mutex> lk(run_id_mtx_); rid = run_id_; }
+        {
+            std::lock_guard<std::mutex> lk(run_id_mtx_);
+            rid = run_id_;
+        }
         ship_batch(lines, "kernel", rid);
     }
 }
@@ -102,7 +105,8 @@ void LogCollector::flush_syslog() {
     // A production implementation would use sd_journal_get_fd().
     static long offset = 0;
     std::ifstream in("/var/log/syslog", std::ios::in);
-    if (!in.is_open()) return;
+    if (!in.is_open())
+        return;
 
     in.seekg(offset);
     std::vector<std::string> lines;
@@ -114,7 +118,10 @@ void LogCollector::flush_syslog() {
 
     if (!lines.empty()) {
         std::string rid;
-        { std::lock_guard<std::mutex> lk(run_id_mtx_); rid = run_id_; }
+        {
+            std::lock_guard<std::mutex> lk(run_id_mtx_);
+            rid = run_id_;
+        }
         ship_batch(lines, "syslog", rid);
     }
 }
@@ -123,9 +130,8 @@ void LogCollector::flush_syslog() {
 // Ship a batch to spool + stream
 // ---------------------------------------------------------------------------
 
-void LogCollector::ship_batch(const std::vector<std::string>& lines,
-                               const std::string& source,
-                               const std::string& run_id) {
+void LogCollector::ship_batch(const std::vector<std::string>& lines, const std::string& source,
+                              const std::string& run_id) {
     if (spool_.log_spool_full()) {
         spool_.evict_oldest_logs(lines.size());
     }
@@ -136,8 +142,9 @@ void LogCollector::ship_batch(const std::vector<std::string>& lines,
 
     using sc = std::chrono::system_clock;
     auto now = sc::now().time_since_epoch();
-    int64_t sec  = std::chrono::duration_cast<std::chrono::seconds>(now).count();
-    int64_t nsec = std::chrono::duration_cast<std::chrono::nanoseconds>(now).count() % 1'000'000'000;
+    int64_t sec = std::chrono::duration_cast<std::chrono::seconds>(now).count();
+    int64_t nsec =
+        std::chrono::duration_cast<std::chrono::nanoseconds>(now).count() % 1'000'000'000;
 
     for (const auto& text : lines) {
         auto* l = batch.add_lines();
