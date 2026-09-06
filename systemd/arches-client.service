@@ -3,6 +3,11 @@ Description=Arches Client — gRPC daemon for IV&V hardware validation (NVIDIA J
 Documentation=https://github.com/SiliconCentric/Arches-Client
 After=network-online.target
 Wants=network-online.target
+# Ordering only, deliberately NOT Requires=. An application must keep running
+# when instrumentation is down -- that is the failure-behaviour contract
+# Arches-Instrumentation itself commits to. After= just means that when both
+# are enabled, /run/instrumentation/application.sock exists before we start.
+After=instr-istate.service
 StartLimitIntervalSec=60
 StartLimitBurst=5
 
@@ -10,6 +15,12 @@ StartLimitBurst=5
 Type=simple
 User=arches
 Group=arches
+# /run/instrumentation/application.sock is mode 0660 owned
+# instr-istate:instr-apps. Arches-Instrumentation's sysusers.d states it
+# plainly: "Membership is the whole access decision: no group, no app
+# surface." Without this the client cannot open the socket at all, so the
+# alarm feature has zero possible producers on the device (Task.md E-01).
+SupplementaryGroups=instr-apps
 WorkingDirectory=/var/lib/arches
 # Starts BOTH listeners:
 #   - ClientService (stream path → Server, default port 50051)
@@ -27,7 +38,13 @@ SyslogIdentifier=arches-client
 NoNewPrivileges=yes
 ProtectSystem=full
 PrivateTmp=yes
-ReadWritePaths=/var/lib/arches
+# The '-' prefix on the instrumentation log sink is load-bearing: under
+# ProtectSystem=full systemd refuses to start a unit whose ReadWritePaths
+# entry does not exist, and this path is absent on an image built without
+# instrumentation. Prefixed, it is skipped instead (Task.md E-02).
+# The sink is /var/log/instrumentation, mode 2770 setgid, group instr-apps --
+# which is the same group granted above, so one membership covers both.
+ReadWritePaths=/var/lib/arches -/var/log/instrumentation
 ProtectHome=yes
 ProtectKernelTunables=yes
 ProtectKernelModules=yes
