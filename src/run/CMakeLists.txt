@@ -8,6 +8,7 @@ target_include_directories(arches_run PRIVATE
 )
 
 target_link_libraries(arches_run PRIVATE
+    arches_instrumentation
     arches_hal_bridge
     hal_protos_shared
     spdlog::spdlog

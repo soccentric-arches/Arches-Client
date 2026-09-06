@@ -51,6 +51,15 @@ void StreamClient::stream_loop() {
             break;
         connected_.store(false);
         spdlog::warn("stream: disconnected, retry in {}s", backoff.count());
+        // Losing the result stream means results are spooling locally rather
+        // than reaching Arches-Server -- an operator wants to see that, so the
+        // application declares it (R5, Task.md E-06). Cleared in run_stream()
+        // once the stream comes back.
+        if (instrumentation_) {
+            instrumentation_->raise(arches::client::instrumentation::kServerStreamLost,
+                                    "stream to " + cfg_.server_address + " disconnected");
+            instrumentation_->report_metric("client_stream_reconnects", 1);
+        }
         std::this_thread::sleep_for(backoff);
         backoff = std::min(backoff * 2, cfg_.max_backoff);
     }
@@ -82,6 +91,10 @@ void StreamClient::run_stream() {
     }
 
     connected_.store(true);
+    // Stream is back: clear the alarm raised on disconnect. Same id and owner
+    // as the raise, or it does not clear.
+    if (instrumentation_)
+        instrumentation_->clear(arches::client::instrumentation::kServerStreamLost);
     spdlog::info("stream: connected to {}", target);
 
     // Reader thread

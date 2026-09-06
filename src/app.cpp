@@ -1,4 +1,5 @@
 #include "app.h"
+#include "instrumentation/Instrumentation.h"
 
 #include <chrono>
 #include <spdlog/spdlog.h>
@@ -200,7 +201,15 @@ bool App::init() {
                           const std::vector<uint8_t>& cfg) -> std::vector<hal::TestResult> {
         return shared_registry->invoke(module_id, mode, cfg);
     };
+    // Instrumentation (R5): the client declares its own alarms and metrics.
+    // Constructed unconditionally -- it is a no-op when instrumentation is not
+    // compiled in or not reachable, so no call site needs a conditional.
+    instrumentation_ = std::make_unique<arches::client::instrumentation::Reporter>();
+    instrumentation_->register_metrics();
+    stream_->set_instrumentation(instrumentation_.get());
+
     orchestrator_ = std::make_unique<RunOrchestrator>(*spool_, *stream_, std::move(hal_fn));
+    orchestrator_->set_instrumentation(instrumentation_.get());
 
     // 4b. HalService gRPC server — shares the same adapter registry (invariant 0.2).
     //     Runs on hal_service_port; no DB writes on this path (invariant 0.3).

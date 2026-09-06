@@ -63,6 +63,8 @@ void RunOrchestrator::on_start(const std::string& run_id) {
 
     // Persist run state to spool.
     spool_.upsert_run_state(run_id, static_cast<int>(RunState::RUNNING), 0);
+    if (instrumentation_)
+        instrumentation_->report_metric("client_runs_started", 1);
 
     RunEntry entry;
     entry.ctx = ctx;
@@ -155,14 +157,33 @@ void RunOrchestrator::driver_thread(std::shared_ptr<RunContext> ctx) {
             flush_synthetic(*ctx, hal::Status::ERROR,
                             "unknown execution mode: " + std::to_string(ctx->mode),
                             RunState::FAILED, true);
+            // R5: the run aborted, so the application declares it. Non-fatal
+            // if instrumentation is absent (Task.md E-06).
+            if (instrumentation_) {
+                instrumentation_->raise(arches::client::instrumentation::kRunAborted,
+                                        "run_id=" + ctx->run_id + " unknown execution mode " +
+                                            std::to_string(ctx->mode));
+                instrumentation_->report_metric("client_runs_aborted", 1);
+            }
         }
     } catch (const std::exception& e) {
         spdlog::error("orchestrator: run_id={} driver exception: {}", ctx->run_id, e.what());
         // An exception escaping the mode handler means the run failed outright.
         flush_synthetic(*ctx, hal::Status::ERROR, std::string("driver exception: ") + e.what(),
                         RunState::FAILED, true);
+        if (instrumentation_) {
+            instrumentation_->raise(arches::client::instrumentation::kRunAborted,
+                                    "run_id=" + ctx->run_id + " driver exception: " + e.what());
+            instrumentation_->report_metric("client_runs_aborted", 1);
+        }
     }
     spdlog::info("orchestrator: run_id={} driver finished", ctx->run_id);
+    if (instrumentation_) {
+        // The condition is over, so clear it. Same owner and id as the raise,
+        // or it does not clear.
+        instrumentation_->clear(arches::client::instrumentation::kRunAborted);
+        instrumentation_->report_metric("client_runs_completed", 1);
+    }
 }
 
 // ---------------------------------------------------------------------------

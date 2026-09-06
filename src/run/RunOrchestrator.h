@@ -15,6 +15,7 @@
 //    content fields; runner stamps sequence and timestamp.
 
 #include "client_service.pb.h"
+#include "instrumentation/Instrumentation.h"
 #include "spool/Spool.h"
 #include "stream/StreamClient.h"
 
@@ -60,6 +61,15 @@ class RunOrchestrator {
     RunOrchestrator(Spool& spool, StreamClient& stream, HalInvokeFn hal_fn);
     ~RunOrchestrator();
 
+    /// @brief Attach an instrumentation reporter for run alarms and metrics.
+    ///
+    /// Optional and non-owning. When unset, or when the reporter is not
+    /// connected, every report is a no-op -- instrumentation is never a hard
+    /// dependency of a run (Task.md E-06).
+    void set_instrumentation(arches::client::instrumentation::Reporter* reporter) {
+        instrumentation_ = reporter;
+    }
+
     RunOrchestrator(const RunOrchestrator&) = delete;
     RunOrchestrator& operator=(const RunOrchestrator&) = delete;
 
@@ -99,6 +109,9 @@ class RunOrchestrator {
                        arches::stream::RunState state, bool terminal);
 
     // Synthesize a special-status result (TIMEOUT, ABORTED, ERROR) and flush.
+    /// Optional instrumentation reporter; nullptr means "not attached".
+    arches::client::instrumentation::Reporter* instrumentation_ = nullptr;
+
     void flush_synthetic(RunContext& ctx, hal::Status status, const std::string& error_message,
                          arches::stream::RunState state, bool terminal);
 

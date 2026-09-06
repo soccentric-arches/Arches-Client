@@ -2,6 +2,7 @@
 
 #include "config/client_config.h"
 #include "diag/DiagSocket.h"
+#include "instrumentation/Instrumentation.h"
 #include "janitor/Janitor.h"
 #include "log/LogCollector.h"
 #include "registry/ModuleRegistry.h"
@@ -40,6 +41,8 @@ class App {
 
     config::ClientConfig cfg_;
 
+    /// Alarm and metric reporting; a no-op when instrumentation is absent.
+    std::unique_ptr<arches::client::instrumentation::Reporter> instrumentation_;
     std::unique_ptr<Spool> spool_;
     std::unique_ptr<StreamClient> stream_;
     std::unique_ptr<ModuleRegistry> registry_;

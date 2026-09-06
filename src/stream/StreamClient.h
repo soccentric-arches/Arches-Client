@@ -9,6 +9,7 @@
 //   Reconnect is automatic on error — exponential backoff up to 30 s.
 //   Call stop() to shut down gracefully.
 
+#include "instrumentation/Instrumentation.h"
 #include <atomic>
 #include <chrono>
 #include <functional>
@@ -61,10 +62,19 @@ class StreamClient {
 
     bool is_connected() const noexcept;
 
+    /// @brief Attach an instrumentation reporter (optional, non-owning).
+    ///
+    /// Stream loss is a condition an operator wants to see, so the client
+    /// declares it as an alarm (R5). Never a hard dependency: unset or
+    /// unconnected means the reports are no-ops (Task.md E-06).
+    void set_instrumentation(arches::client::instrumentation::Reporter* r) { instrumentation_ = r; }
+
     private:
     void stream_loop();
     void run_stream();
 
+    /// Optional instrumentation reporter; nullptr means "not attached".
+    arches::client::instrumentation::Reporter* instrumentation_ = nullptr;
     StreamClientConfig cfg_;
     ServerMessageCb on_message_;
     std::atomic<bool> running_{false};

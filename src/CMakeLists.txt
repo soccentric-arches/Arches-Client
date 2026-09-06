@@ -15,6 +15,7 @@ add_subdirectory(log)
 add_subdirectory(janitor)
 add_subdirectory(run)
 add_subdirectory(hal_service)
+add_subdirectory(instrumentation)
 
 # ---------------------------------------------------------------------------
 # Main executable
@@ -36,6 +37,7 @@ target_link_libraries(arches-client PRIVATE
     arches_diag
     arches_hal_bridge
     arches_hal_service
+    arches_instrumentation
     arches_janitor
     arches_log
     arches_ota

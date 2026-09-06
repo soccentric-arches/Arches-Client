@@ -8,6 +8,7 @@ target_include_directories(arches_stream PRIVATE
 
 # gRPC runtime + proto message types come transitively from hal_protos_shared.
 target_link_libraries(arches_stream PRIVATE
+    arches_instrumentation
     hal_protos_shared
     spdlog::spdlog
 )
