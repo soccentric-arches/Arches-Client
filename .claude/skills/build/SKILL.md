@@ -39,7 +39,7 @@ Test and lint targets (make test, make lint, make cppcheck, make format) also li
 
 Docker run mechanics common to all docker-* build targets:
 - Mounts the parent Arches/ directory (not just this repo) to /workspace, so ../Arches-HAL resolves inside the container — ARCHES_ROOT := $(dirname $(realpath .)).
-- Mounts a named volume ccache-arches-client:/home/rpi/.ccache to persist compiler cache across runs.
+- Mounts a named volume ccache-arches-client:/home/builder/.ccache to persist compiler cache across runs.
 - Uses -t --init so Ctrl-C reaches the containerized ninja process and tini reaps children correctly.
 
 docker/Makefile (invoked via make -C docker <target>) is the lower-level image builder: build (buildx, passes host UID/GID), run (interactive container, no --gpus since GPU tests are on-target only), clean (docker rmi arches), delete-images (removes all local Docker images — destructive, don't run casually).

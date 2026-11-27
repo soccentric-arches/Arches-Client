@@ -107,7 +107,7 @@ list: ## List available test applications
 # --init: use tini as PID 1 to properly propagate signals to child processes (e.g. ninja)
 # ccache volume: persist compilation cache across docker runs
 # ARCHES_ROOT is mounted so ../Arches-HAL/protos and ../Arches-HAL/src resolve inside the container.
-DOCKER_RUN := docker run --rm -t --init --platform linux/arm64 -v $(ARCHES_ROOT):/workspace -v ccache-arches-client:/home/rpi/.ccache $(DOCKER_IMAGE) bash -c
+DOCKER_RUN := docker run --rm -t --init --platform linux/arm64 -v $(ARCHES_ROOT):/workspace -v ccache-arches-client:/home/builder/.ccache $(DOCKER_IMAGE) bash -c
 
 docker-install: ## Install Docker if not present
 	@if ! command -v docker > /dev/null 2>&1; then \
@@ -143,7 +143,7 @@ docker-clean: docker-image ## Clean Docker build artifacts
 
 docker-shell: docker-image ## Start Docker shell for development
 	@echo "Starting Docker shell for development..."
-	docker run -it --rm --platform linux/arm64 -v $(ARCHES_ROOT):/workspace -v ccache-arches-client:/home/rpi/.ccache $(DOCKER_IMAGE) bash
+	docker run -it --rm --platform linux/arm64 -v $(ARCHES_ROOT):/workspace -v ccache-arches-client:/home/builder/.ccache $(DOCKER_IMAGE) bash
 
 # =============================================================================
 # Deploy & Run (on target device)
